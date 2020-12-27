@@ -13,25 +13,27 @@
 using Truffle::Window;
 using Truffle::Renderer;
 using Truffle::Dispatcher;
-using Truffle::ImageTextureBehavior;
+using Truffle::StaticImageTextureBehavior;
 using Truffle::SceneManager;
 using Truffle::Scene;
 using Truffle::ScenePtr;
 using Truffle::FixedButton;
 using Truffle::Color;
 
-class Genji final : public ImageTextureBehavior {
+class Genji final : public StaticImageTextureBehavior {
  public:
   static constexpr std::string_view name = "genji_behavior";
+  const int xpos = 0;
+  const int ypos = 0;
 
-  explicit Genji(Renderer& r) : ImageTextureBehavior(r, "../testdata/genji.jpg", name.data()) {}
+  explicit Genji(Renderer& r) : StaticImageTextureBehavior(r, "../testdata/genji.jpg", name.data(), xpos, ypos) {}
 
   void start() override {
     std::cout << "start" << std::endl;
   }
 
   void update() override {
-    render(0, 0);
+    render();
   }
 
   void onKeyPressed(SDL_Event& ev) override {
