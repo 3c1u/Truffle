@@ -2,20 +2,21 @@
 // Created by shikugawa on 2020/12/26.
 //
 
-#ifndef MIRAI_EVENT_CALLBACK_H
-#define MIRAI_EVENT_CALLBACK_H
+#ifndef TRUFFLE_EVENT_CALLBACK_H
+#define TRUFFLE_EVENT_CALLBACK_H
 
 #include <SDL2/SDL.h>
 
-namespace Mirai {
-class KeyPressCallback {
+namespace Truffle {
+
+class InterruptionEventCallback {
  public:
-  virtual ~KeyPressCallback() = default;
+  virtual ~InterruptionEventCallback() = default;
 
   virtual void onKeyPressed(SDL_Event& ev) {}
 
   virtual void onMouseButtonPressed(SDL_Event& ev) {}
 };
-}  // namespace Mirai
+}  // namespace Truffle
 
-#endif  // MIRAI_EVENT_CALLBACK_H
+#endif  // Truffle_EVENT_CALLBACK_H

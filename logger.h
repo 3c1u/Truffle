@@ -2,12 +2,12 @@
 // Created by shikugawa on 2020/12/19.
 //
 
-#ifndef MIRAI_LOGGER_H
-#define MIRAI_LOGGER_H
+#ifndef TRUFFLE_LOGGER_H
+#define TRUFFLE_LOGGER_H
 
 #include "spdlog/spdlog.h"
 
-namespace Mirai {
+namespace Truffle {
 
 // Thread safe logger
 static const std::shared_ptr<spdlog::logger> logger =
@@ -33,5 +33,5 @@ void log(LogLevel lv, std::string&& message) {
   }
 }
 
-}  // namespace Mirai
-#endif  // Mirai_LOGGER_H
+}  // namespace Truffle
+#endif  // Truffle_LOGGER_H

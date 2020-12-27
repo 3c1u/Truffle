@@ -2,8 +2,8 @@
 // Created by shikugawa on 2020/12/19.
 //
 
-#ifndef MIRAI_DISPATCHER_H
-#define MIRAI_DISPATCHER_H
+#ifndef TRUFFLE_DISPATCHER_H
+#define TRUFFLE_DISPATCHER_H
 
 #include <SDL2/SDL.h>
 #include <absl/container/flat_hash_map.h>
@@ -15,9 +15,9 @@
 #include "scene.h"
 #include "texture.h"
 
-namespace Mirai {
+namespace Truffle {
 
-class Dispatcher {
+class Dispatcher : NonCopyable {
  public:
   Dispatcher(SceneManager& m, Renderer& r)
       : scene_manager_(m), renderer_(r), exit_handler_([](SDL_Event&) {}) {}
@@ -73,6 +73,6 @@ class Dispatcher {
   SceneManager& scene_manager_;
   Renderer& renderer_;
 };
-}  // namespace Mirai
+}  // namespace Truffle
 
-#endif  // Mirai_DISPATCHER_H
+#endif  // Truffle_DISPATCHER_H

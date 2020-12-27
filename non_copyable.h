@@ -2,10 +2,10 @@
 // Created by shikugawa on 2020/12/19.
 //
 
-#ifndef MIRAI_NON_COPYABLE_H
-#define MIRAI_NON_COPYABLE_H
+#ifndef TRUFFLE_NON_COPYABLE_H
+#define TRUFFLE_NON_COPYABLE_H
 
-namespace Mirai {
+namespace Truffle {
 
 class NonCopyable {
  protected:
@@ -18,5 +18,5 @@ class NonCopyable {
   NonCopyable& operator=(const NonCopyable&) = delete;
 };
 
-}  // namespace Mirai
-#endif  // Mirai_NON_COPYABLE_H
+}  // namespace Truffle
+#endif  // Truffle_NON_COPYABLE_H

@@ -2,22 +2,29 @@
 // Created by shikugawa on 2020/12/26.
 //
 
-#ifndef MIRAI_BEHAVIOR_H
-#define MIRAI_BEHAVIOR_H
+#ifndef TRUFFLE_BEHAVIOR_H
+#define TRUFFLE_BEHAVIOR_H
 
 #include "event_callback.h"
 
-namespace Mirai {
+namespace Truffle {
 
-class MiraiBehavior : public KeyPressCallback {
+class TruffleBehavior : public InterruptionEventCallback {
  public:
-  virtual ~MiraiBehavior() = default;
+  TruffleBehavior(std::string name) : name_(name) {}
+
+  virtual ~TruffleBehavior() = default;
 
   virtual void start(){};
 
   virtual void update(){};
+
+  const std::string& name() { return name_; }
+
+ private:
+  std::string name_;
 };
 
-}  // namespace Mirai
+}  // namespace Truffle
 
-#endif  // MIRAI_BEHAVIOR_H
+#endif  // Truffle_BEHAVIOR_H

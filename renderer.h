@@ -2,16 +2,16 @@
 // Created by shikugawa on 2020/12/19.
 //
 
-#ifndef MIRAI_RENDERER_H
-#define MIRAI_RENDERER_H
+#ifndef TRUFFLE_RENDERER_H
+#define TRUFFLE_RENDERER_H
 
 #include <SDL2/SDL.h>
 
 #include "window.h"
 
-namespace Mirai {
+namespace Truffle {
 
-class Renderer {
+class Renderer : NonCopyable {
  public:
   void init(Window& window) {
     if (initialized_) {
@@ -19,14 +19,14 @@ class Renderer {
     }
 
     if (!window.initialized()) {
-      throw MiraiException(
+      throw TruffleException(
           absl::StrFormat("Window %s doesn't initialized.", window.name()));
     }
     renderer_entity_ = SDL_CreateRenderer(
         const_cast<SDL_Window*>(window.windowEntity()), -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer_entity_) {
-      throw MiraiException(absl::StrFormat(
+      throw TruffleException(absl::StrFormat(
           "Failed to create renderer, bound to window %s", window.name()));
     }
 
@@ -55,5 +55,5 @@ class Renderer {
   SDL_Renderer* renderer_entity_;
 };
 
-}  // namespace Mirai
-#endif  // Mirai_RENDERER_H
+}  // namespace Truffle
+#endif  // Truffle_RENDERER_H

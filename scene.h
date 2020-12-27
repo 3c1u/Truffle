@@ -2,8 +2,8 @@
 // Created by shikugawa on 2020/12/26.
 //
 
-#ifndef MIRAI_SCENE_H
-#define MIRAI_SCENE_H
+#ifndef TRUFFLE_SCENE_H
+#define TRUFFLE_SCENE_H
 
 #include <absl/container/flat_hash_map.h>
 
@@ -13,11 +13,13 @@
 
 #include "behavior.h"
 #include "logger.h"
+#include "non_copyable.h"
+#include "renderable.h"
 
-namespace Mirai {
+namespace Truffle {
 using Callback = std::function<void(SDL_Event& ev /* TODO: wrap SDL event */)>;
 
-class Scene {
+class Scene : NonCopyable {
  public:
   using ScenePtr = std::shared_ptr<Scene>;
 
@@ -27,10 +29,14 @@ class Scene {
 
   std::string& name() { return name_; }
 
-  void setBehavior(MiraiBehavior& b) {
+  void setBehavior(TruffleBehavior& b) {
+    log(LogLevel::INFO,
+        absl::StrFormat("behavior %s registered to scene %s", b.name(), name_));
     behaviors_.push_front(b);
     callbacks_[SDL_KEYDOWN].push_back(
         [&b](SDL_Event& ev) { b.onKeyPressed(ev); });
+    callbacks_[SDL_MOUSEBUTTONDOWN].push_back(
+        [&b](SDL_Event& ev) { b.onMouseButtonPressed(ev); });
   }
 
   void addNextScene(ScenePtr next) { next_scenes_.emplace(next->name(), next); }
@@ -39,7 +45,8 @@ class Scene {
     return callbacks_;
   }
 
-  const std::forward_list<std::reference_wrapper<MiraiBehavior>>& behaviors() {
+  const std::forward_list<std::reference_wrapper<TruffleBehavior>>&
+  behaviors() {
     return behaviors_;
   }
 
@@ -51,12 +58,12 @@ class Scene {
   std::string name_;
   absl::flat_hash_map<std::string, ScenePtr> next_scenes_;
   absl::flat_hash_map<Uint32, std::vector<Callback>> callbacks_;
-  std::forward_list<std::reference_wrapper<MiraiBehavior>> behaviors_;
+  std::forward_list<std::reference_wrapper<TruffleBehavior>> behaviors_;
 };
 
 using ScenePtr = Scene::ScenePtr;
 
-class SceneManager {
+class SceneManager : NonCopyable {
  public:
   SceneManager(ScenePtr root_scene) : current_scene_(root_scene) {}
 
@@ -67,10 +74,10 @@ class SceneManager {
       std::unique_lock l(mux_);
       current_scene_ = scene->second;
       log(LogLevel::INFO,
-          absl::StrCat("Scene transition to %s succeeded", name));
+          absl::StrFormat("Scene transition to %s succeeded", name));
       return true;
     }
-    log(LogLevel::WARN, absl::StrCat("Missing candidate scene %s", name));
+    log(LogLevel::WARN, absl::StrFormat("Missing candidate scene %s", name));
     return false;
   }
 
@@ -80,6 +87,7 @@ class SceneManager {
   std::mutex mux_;
   ScenePtr current_scene_;
 };
-}  // namespace Mirai
 
-#endif  // MIRAI_SCENE_H
+}  // namespace Truffle
+
+#endif  // Truffle_SCENE_H

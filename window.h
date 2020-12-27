@@ -2,8 +2,8 @@
 // Created by shikugawa on 2020/12/18.
 //
 
-#ifndef MIRAI_WINDOW_H
-#define MIRAI_WINDOW_H
+#ifndef TRUFFLE_WINDOW_H
+#define TRUFFLE_WINDOW_H
 
 #include <SDL2/SDL.h>
 #include <absl/strings/str_format.h>
@@ -14,7 +14,7 @@
 #include "exception.h"
 #include "non_copyable.h"
 
-namespace Mirai {
+namespace Truffle {
 
 // TODO(shikugawa): It should be singleton class
 class Window : NonCopyable {
@@ -33,7 +33,7 @@ class Window : NonCopyable {
                                       SDL_WINDOWPOS_UNDEFINED, width_, height_,
                                       SDL_WINDOW_SHOWN);
     if (!window_entity_) {
-      throw MiraiException(
+      throw TruffleException(
           absl::StrFormat("Failed to create %s window", name_));
     }
 
@@ -66,6 +66,6 @@ class Window : NonCopyable {
 
 using WindowPtr = std::shared_ptr<Window>;
 
-}  // namespace Mirai
+}  // namespace Truffle
 
-#endif  // Mirai_WINDOW_H
+#endif  // Truffle_WINDOW_H

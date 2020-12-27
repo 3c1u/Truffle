@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(Mirai)
+project(Truffle)
 
 set(CMAKE_CXX_STANDARD 17)
 set(ABSL_CXX_STANDARD 17)
@@ -9,6 +9,6 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(absl REQUIRED)
 
-add_executable(Mirai main.cpp window.h non_copyable.h exception.h renderer.h dispatcher.h renderable.h texture.h logger.h behavior.h event_callback.h scene.h)
-target_link_libraries(Mirai ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES}
+add_executable(Truffle main.cpp window.h non_copyable.h exception.h renderer.h dispatcher.h renderable.h texture.h logger.h behavior.h event_callback.h scene.h button.h)
+target_link_libraries(Truffle ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES}
          absl::strings absl::flat_hash_map absl::str_format_internal)
