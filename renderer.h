@@ -48,6 +48,8 @@ class Renderer {
     SDL_RenderPresent(renderer_entity_);
   }
 
+  SDL_Renderer* entity() { return renderer_entity_; }
+
  private:
   bool initialized_{false};
   SDL_Renderer* renderer_entity_;

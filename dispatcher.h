@@ -8,27 +8,24 @@
 #include <SDL2/SDL.h>
 #include <absl/container/flat_hash_map.h>
 
+#include <cassert>
 #include <forward_list>
 #include <functional>
 
-#include "logger.h"
-#include "renderable.h"
+#include "scene.h"
+#include "texture.h"
 
 namespace Mirai {
 
-using Callback = std::function<int()>;
-
 class Dispatcher {
  public:
-  Dispatcher() {
-    callbacks_[SDL_QUIT] = []() -> int { return -1; };
-  }
-  Dispatcher(Callback dispatcher_exit_callback) {
-    callbacks_[SDL_QUIT] = [&dispatcher_exit_callback]() -> int {
-      dispatcher_exit_callback();
-      return -1;
-    };
-  }
+  Dispatcher(SceneManager& m, Renderer& r)
+      : scene_manager_(m), renderer_(r), exit_handler_([](SDL_Event&) {}) {}
+
+  Dispatcher(SceneManager& m, Renderer& r, Callback dispatcher_exit_callback)
+      : scene_manager_(m),
+        renderer_(r),
+        exit_handler_(dispatcher_exit_callback) {}
 
   void run() {
     while (true) {
@@ -38,35 +35,43 @@ class Dispatcher {
         return;
       }
 
-      for (const auto& r : renderables_) {
-        r->render();
-      }
-    }
-  }
+      SDL_SetRenderDrawColor(renderer_.entity(), 0xff, 0xff, 0xff, 0xff);
+      SDL_RenderClear(renderer_.entity());
 
-  void addCallback(Uint32 type, Callback cb) {
-    if (type == SDL_QUIT) {
-      log(LogLevel::WARN, "Not allowed to rewrite SDL_QUIT event callback.");
-      return;
+      assert(scene_manager_.currentScene());
+      for (auto& b : scene_manager_.currentScene()->behaviors()) {
+        b.get().update();
+      }
+
+      SDL_RenderPresent(renderer_.entity());
     }
-    callbacks_[type] = cb;
   }
 
  private:
   int handleEvent(SDL_Event* e) {
     while (SDL_PollEvent(e) != 0) {
-      for (const auto& [type, cb] : callbacks_) {
+      if (e->type == SDL_QUIT) {
+        exit_handler_(*e);
+        return -1;
+      }
+      assert(scene_manager_.currentScene());
+      for (const auto& [type, callbacks] :
+           scene_manager_.currentScene()->callbacks()) {
         if (e->type != type) {
           continue;
         }
-        return cb();
+        for (const auto& cb : callbacks) {
+          cb(*e);
+        }
+        return 0;
       }
     }
     return 0;
   }
 
-  absl::flat_hash_map<Uint32, Callback> callbacks_;
-  std::forward_list<RenderablePtr> renderables_;
+  Callback exit_handler_;
+  SceneManager& scene_manager_;
+  Renderer& renderer_;
 };
 }  // namespace Mirai
 

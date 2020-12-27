@@ -12,7 +12,7 @@ class Renderable {
  public:
   ~Renderable() = default;
 
-  virtual void render() = 0;
+  virtual void render(int x, int y) = 0;
 };
 
 using RenderablePtr = std::shared_ptr<Renderable>;
