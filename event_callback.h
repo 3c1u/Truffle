@@ -14,8 +14,6 @@ class InterruptionEventCallback {
   virtual ~InterruptionEventCallback() = default;
 
   virtual void onKeyPressed(SDL_Event& ev) {}
-
-  virtual void onMouseButtonPressed(SDL_Event& ev) {}
 };
 }  // namespace Truffle
 

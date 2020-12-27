@@ -12,12 +12,16 @@
 #include <string>
 
 #include "behavior.h"
+#include "button.h"
 #include "logger.h"
 #include "non_copyable.h"
 #include "renderable.h"
 
 namespace Truffle {
+
 using Callback = std::function<void(SDL_Event& ev /* TODO: wrap SDL event */)>;
+using ConditionalEventCallback = std::function<void()>;
+using ConditionalCallback = std::function<bool()>;
 
 class Scene : NonCopyable {
  public:
@@ -41,8 +45,17 @@ class Scene : NonCopyable {
     behaviors_.push_front(b);
     callbacks_[SDL_KEYDOWN].push_back(
         [&b](SDL_Event& ev) { b.onKeyPressed(ev); });
-    callbacks_[SDL_MOUSEBUTTONDOWN].push_back(
-        [&b](SDL_Event& ev) { b.onMouseButtonPressed(ev); });
+  }
+
+  void setButton(Button& b) {
+    buttons_.push_front(b);
+    callbacks_[SDL_MOUSEBUTTONDOWN].push_back([&b](SDL_Event& ev) {
+      if (b.onMouseLeftButtonPressed(ev)) {
+        b.onClicked(ev);
+      }
+    });
+    cond_callbacks_.emplace_back(std::make_pair(
+        [&b] { return b.onMouseHovered(); }, [&b] { b.onHover(); }));
   }
 
   void addNextScene(ScenePtr next) { next_scenes_.emplace(next->name(), next); }
@@ -56,15 +69,32 @@ class Scene : NonCopyable {
     return behaviors_;
   }
 
+  const std::forward_list<std::reference_wrapper<Button>>& buttons() {
+    return buttons_;
+  }
+
   const absl::flat_hash_map<std::string, ScenePtr>& nextScenes() {
     return next_scenes_;
+  }
+
+  const std::vector<std::pair<ConditionalCallback, ConditionalEventCallback>>&
+  conditionalCallbacks() {
+    return cond_callbacks_;
   }
 
  private:
   std::string name_;
   absl::flat_hash_map<std::string, ScenePtr> next_scenes_;
-  absl::flat_hash_map<Uint32, std::vector<Callback>> callbacks_;
   std::forward_list<std::reference_wrapper<TruffleBehavior>> behaviors_;
+  std::forward_list<std::reference_wrapper<Button>> buttons_;
+
+  // Handle all callbacks in this scene. This value will be set automatically
+  // by adding behaviors or buttons.
+  absl::flat_hash_map<Uint32, std::vector<Callback>> callbacks_;
+  // Handle all callbacks which will be invoked by events which don't send any
+  // signals, only to be caused by condition.
+  std::vector<std::pair<ConditionalCallback, ConditionalEventCallback>>
+      cond_callbacks_;
 };
 
 using ScenePtr = Scene::ScenePtr;

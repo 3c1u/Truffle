@@ -7,28 +7,23 @@
 
 #include <SDL2/SDL.h>
 
-#include "behavior.h"
-#include "renderable.h"
 #include "renderer.h"
+#include "texture.h"
 
 namespace Truffle {
 
-using MouseClickActionCallback = std::function<void()>;
 using Color = SDL_Color;
 
-class FixedButton : public FixedRenderable, public TruffleBehavior {
+class Button : public FixedRenderable {
  public:
-  explicit FixedButton(Renderer& renderer, std::string name, int x, int y,
-                       int width, int height, Color color,
-                       MouseClickActionCallback click_cb)
+  explicit Button(Renderer& renderer, std::string name, int x, int y, int width,
+                  int height, Color color)
       : FixedRenderable(renderer, name),
-        TruffleBehavior(name),
         x_(x),
         y_(y),
         width_(width),
         height_(height),
-        color_(color),
-        click_cb_(click_cb) {}
+        color_(color) {}
 
   // FixedRenderable
   void render() override {
@@ -38,18 +33,24 @@ class FixedButton : public FixedRenderable, public TruffleBehavior {
     SDL_RenderFillRect(renderer_.entity(), &fill_rect);
   }
 
-  // TruffleBehavior
-  void update() override { render(); }
+  virtual void onHover() {}
 
-  void onMouseButtonPressed(SDL_Event& ev) override {
-    if (ev.button.button != SDL_BUTTON_LEFT) {
-      return;
-    }
+  virtual void onClicked(SDL_Event& ev) {}
+
+  bool onMouseHovered() {
     int x, y;
     SDL_GetMouseState(&x, &y);
     if ((x_ <= x && x <= x_ + width_) && (y_ <= y && y <= y_ + height_)) {
-      click_cb_();
+      return true;
     }
+    return false;
+  }
+
+  bool onMouseLeftButtonPressed(SDL_Event& ev) {
+    if (ev.button.button != SDL_BUTTON_LEFT) {
+      return false;
+    }
+    return onMouseHovered();
   }
 
  private:
@@ -58,7 +59,6 @@ class FixedButton : public FixedRenderable, public TruffleBehavior {
   int width_;
   int height_;
   Color color_;
-  MouseClickActionCallback click_cb_;
 };
 
 }  // namespace Truffle

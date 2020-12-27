@@ -17,7 +17,7 @@ using Truffle::StaticImageTextureBehavior;
 using Truffle::SceneManager;
 using Truffle::Scene;
 using Truffle::ScenePtr;
-using Truffle::FixedButton;
+using Truffle::Button;
 using Truffle::Color;
 
 class Genji final : public StaticImageTextureBehavior {
@@ -39,6 +39,20 @@ class Genji final : public StaticImageTextureBehavior {
   }
 };
 
+class HogeButton : public Button {
+public:
+    HogeButton(Renderer& renderer, std::string name, int x, int y, int width, int height, Color color)
+     : Button(renderer, name, x, y, width, height, color) {}
+
+    void onHover() override {
+        std::cout << "hover" << std::endl;
+    }
+
+    void onClicked(SDL_Event& ev) override {
+        std::cout << "clicked" << std::endl;
+    }
+};
+
 int main() {
     // TODO: provide on init manager
   int img_flags = IMG_INIT_PNG;
@@ -58,12 +72,11 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-  Genji dot(r);
-  s1->setBehavior(dot);
-//  FixedButton fb(r, "button1", 50, 50, 50, 50,
-//                 Color {0x00, 0xff, 0x00, 0xff},
-//                 [] { std::cout << "clicked" << std::endl; });
-//  s1->setBehavior(fb);
+//  Genji dot(r);
+//  s1->setBehavior(dot);
+  HogeButton fb(r, "button1", 50, 50, 50, 50,
+                 Color {0x00, 0xff, 0x00, 0xff});
+  s1->setButton(fb);
 
   // define scene manager
   SceneManager sm(s1);

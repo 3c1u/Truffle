@@ -39,12 +39,22 @@ class Dispatcher : NonCopyable {
         return;
       }
 
+      assert(scene_manager_.currentScene());
+      for (const auto& [cond, callback] :
+           scene_manager_.currentScene()->conditionalCallbacks()) {
+        if (cond()) callback();
+      }
       SDL_SetRenderDrawColor(renderer_.entity(), 0xff, 0xff, 0xff, 0xff);
       SDL_RenderClear(renderer_.entity());
 
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->behaviors()) {
         b.get().update();
+      }
+
+      assert(scene_manager_.currentScene());
+      for (auto& b : scene_manager_.currentScene()->buttons()) {
+        b.get().render();
       }
 
       SDL_RenderPresent(renderer_.entity());
