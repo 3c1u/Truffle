@@ -27,6 +27,12 @@ class Scene : NonCopyable {
 
   ~Scene() { next_scenes_.clear(); }
 
+  void initScene() {
+    for (auto& cb : behaviors_) {
+      cb.get().start();
+    }
+  }
+
   std::string& name() { return name_; }
 
   void setBehavior(TruffleBehavior& b) {
@@ -75,6 +81,7 @@ class SceneManager : NonCopyable {
       current_scene_ = scene->second;
       log(LogLevel::INFO,
           absl::StrFormat("Scene transition to %s succeeded", name));
+      current_scene_->initScene();
       return true;
     }
     log(LogLevel::WARN, absl::StrFormat("Missing candidate scene %s", name));

@@ -28,6 +28,10 @@ class Dispatcher : NonCopyable {
         exit_handler_(dispatcher_exit_callback) {}
 
   void run() {
+    // Call startup functions on root scene
+    assert(scene_manager_.currentScene());
+    scene_manager_.currentScene()->initScene();
+
     while (true) {
       SDL_Event e;
       if (handleEvent(&e) < 0) {

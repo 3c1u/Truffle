@@ -126,8 +126,8 @@ class StaticImageTextureBehavior : public FixedRenderable,
 
  private:
   SDL_Texture* texture_;
-  int x_;
-  int y_;
+  const int x_;
+  const int y_;
   int width_;
   int height_;
 };

@@ -23,10 +23,8 @@ using Truffle::Color;
 class Genji final : public StaticImageTextureBehavior {
  public:
   static constexpr std::string_view name = "genji_behavior";
-  const int xpos = 0;
-  const int ypos = 0;
 
-  explicit Genji(Renderer& r) : StaticImageTextureBehavior(r, "../testdata/genji.jpg", name.data(), xpos, ypos) {}
+  explicit Genji(Renderer& r) : StaticImageTextureBehavior(r, "../testdata/genji.jpg", name.data(), 0, 0) {}
 
   void start() override {
     std::cout << "start" << std::endl;
@@ -60,12 +58,12 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-//  Genji dot(r);
-//  s1->setBehavior(dot);
-  FixedButton fb(r, "button1", 50, 50, 50, 50,
-                 Color {0x00, 0xff, 0x00, 0xff},
-                 [] { std::cout << "clicked" << std::endl; });
-  s1->setBehavior(fb);
+  Genji dot(r);
+  s1->setBehavior(dot);
+//  FixedButton fb(r, "button1", 50, 50, 50, 50,
+//                 Color {0x00, 0xff, 0x00, 0xff},
+//                 [] { std::cout << "clicked" << std::endl; });
+//  s1->setBehavior(fb);
 
   // define scene manager
   SceneManager sm(s1);
