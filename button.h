@@ -14,6 +14,26 @@ namespace Truffle {
 
 using Color = SDL_Color;
 
+/**
+ * 基礎的なボタンの機能を提供するクラス
+ *
+ * example:
+ *
+ * class HogeButton : public Button {
+ * public:
+ *   HogeButton(Renderer& renderer, std::string name, int x, int y, int width,
+ * int height, Color color) : Button(renderer, name, x, y, width, height, color)
+ * {}
+ *
+ *   void onHover() override {
+ *       std::cout << "hover" << std::endl;
+ *   }
+ *
+ *   void onClicked(SDL_Event& ev) override {
+ *       std::cout << "clicked" << std::endl;
+ *   }
+ * };
+ */
 class Button : public FixedRenderable {
  public:
   explicit Button(Renderer& renderer, std::string name, int x, int y, int width,
@@ -59,6 +79,10 @@ class Button : public FixedRenderable {
   int width_;
   int height_;
   Color color_;
+};
+
+class ImageButton : public Button {
+ public:
 };
 
 }  // namespace Truffle

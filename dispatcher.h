@@ -33,12 +33,14 @@ class Dispatcher : NonCopyable {
     scene_manager_.currentScene()->initScene();
 
     while (true) {
+      // Handle SDL_Event
       SDL_Event e;
       if (handleEvent(&e) < 0) {
         log(LogLevel::INFO, "Event dispatcher stopped.");
         return;
       }
 
+      // Handle conditional callbacks, which will be invoked by mouse hover etc
       assert(scene_manager_.currentScene());
       for (const auto& [cond, callback] :
            scene_manager_.currentScene()->conditionalCallbacks()) {
@@ -47,11 +49,13 @@ class Dispatcher : NonCopyable {
       SDL_SetRenderDrawColor(renderer_.entity(), 0xff, 0xff, 0xff, 0xff);
       SDL_RenderClear(renderer_.entity());
 
+      // Handle update events of behaviors
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->behaviors()) {
         b.get().update();
       }
 
+      // Render buttons
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->buttons()) {
         b.get().render();

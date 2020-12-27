@@ -72,8 +72,8 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-//  Genji dot(r);
-//  s1->setBehavior(dot);
+  Genji dot(r);
+  s1->setBehavior(dot);
   HogeButton fb(r, "button1", 50, 50, 50, 50,
                  Color {0x00, 0xff, 0x00, 0xff});
   s1->setButton(fb);
