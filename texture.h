@@ -12,7 +12,6 @@
 #include <cassert>
 #include <string>
 
-#include "behavior.h"
 #include "exception.h"
 #include "renderable.h"
 #include "renderer.h"
@@ -54,87 +53,6 @@ class ImageTexture {
   int width_;
   int height_;
   std::string name_;
-};
-
-/**
- * 位置が変動しないテクスチャに基づくビヘイビアを表現するクラス。このクラスを継承することで静的なテクスチャを表現できる。
- *
- * example:
- *
- * class SampleBehavior : public StaticImageTextureBehavior {
- * public:
- *     void start() {}
- *     void update() {
- *         render();
- *     }
- *     void onMouseButtonClicked(SDL_Event& ev) {}
- * };
- */
-class StaticImageTextureBehavior : public ImageTexture, public TruffleBehavior {
- public:
-  explicit StaticImageTextureBehavior(Renderer& renderer, std::string path,
-                                      std::string name, int x, int y)
-      : ImageTexture(renderer, path, name),
-        TruffleBehavior(renderer, name),
-        x_(x),
-        y_(y) {}
-
-  // FixedRenderable
-  void render() override {
-    SDL_Rect render_rect = {x_, y_, width_, height_};
-    SDL_RenderCopy(renderer_.entity(), texture_,
-                   nullptr /* TODO: introduce clip settings */, &render_rect);
-  }
-
- private:
-  const int x_;
-  const int y_;
-};
-
-/**
- * 位置が変動するテクスチャに基づくビヘイビアを表現するクラス。このクラスを継承することで動的なテクスチャを表現できる。TruffleBehavior::update()
- * 内で位置の再計算を行い、MoveableRenderable::render(int, int)
- * を呼ぶことでテクスチャの位置変更が出来る。
- *
- * example:
- *
- * class SampleBehavior : public DynamicImageTextureBehavior {
- * public:
- *     int x_;
- *     int y_;
- *
- *     void start() {
- *         x_ = 0;
- *         y_ = 0;
- *     }
- *     void update() {
- *         x_ += 40;
- *         y_ += 40;
- *         render(x, y);
- *     }
- * };
- */
-class DynamicImageTextureBehavior : public ImageTexture,
-                                    public TruffleBehavior {
- public:
-  explicit DynamicImageTextureBehavior(Renderer& renderer, std::string path,
-                                       std::string name, int x, int y)
-      : ImageTexture(renderer, path, name),
-        TruffleBehavior(renderer, name),
-        x(x),
-        y(y) {}
-
-  ~DynamicImageTextureBehavior() { SDL_DestroyTexture(texture_); }
-
-  // FixedRenderable
-  void render() override {
-    SDL_Rect render_rect = {x, y, width_, height_};
-    SDL_RenderCopy(renderer_.entity(), texture_,
-                   nullptr /* TODO: introduce clip settings */, &render_rect);
-  }
-
- protected:
-  int x, y;
 };
 
 }  // namespace Truffle

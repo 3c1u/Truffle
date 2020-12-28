@@ -13,18 +13,18 @@
 using Truffle::Window;
 using Truffle::Renderer;
 using Truffle::Dispatcher;
-using Truffle::StaticImageTextureBehavior;
+using Truffle::ImageTextureBehavior;
 using Truffle::SceneManager;
 using Truffle::Scene;
 using Truffle::ScenePtr;
 using Truffle::Color;
 using Truffle::ImageButton;
 
-class Genji final : public StaticImageTextureBehavior {
+class Genji final : public ImageTextureBehavior {
  public:
   static constexpr std::string_view name = "genji_behavior";
 
-  explicit Genji(Renderer& r) : StaticImageTextureBehavior(r, "../testdata/genji.jpg", name.data(), 0, 0) {}
+  explicit Genji(Renderer& r) : ImageTextureBehavior(r, "../testdata/genji.jpg", name.data(), 0, 0) {}
 
   void start() override {
     std::cout << "start" << std::endl;
