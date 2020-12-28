@@ -6,20 +6,22 @@
 #define TRUFFLE_BEHAVIOR_H
 
 #include "event_callback.h"
+#include "renderable.h"
 
 namespace Truffle {
 
-class TruffleBehavior : public InterruptionEventCallback {
+class TruffleBehavior : public FixedRenderable {
  public:
-  TruffleBehavior(std::string name) : name_(name) {}
+  TruffleBehavior(Renderer& r, std::string name)
+      : FixedRenderable(r, name), name_(name) {}
 
   virtual ~TruffleBehavior() = default;
 
   virtual void start(){};
 
-  virtual void update(){};
+  virtual void update(SDL_Event&){};
 
-  const std::string& name() { return name_; }
+  const std::string& behaviorName() { return name_; }
 
  private:
   std::string name_;

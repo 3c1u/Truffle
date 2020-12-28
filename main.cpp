@@ -30,13 +30,15 @@ class Genji final : public StaticImageTextureBehavior {
     std::cout << "start" << std::endl;
   }
 
-  void update() override {
-    render();
+  void update(SDL_Event& ev) override {
+      if (ev.type == SDL_KEYDOWN) {
+          std::cout << "keydown" << std::endl;
+      }
   }
 
-  void onKeyPressed(SDL_Event& ev) override {
-    std::cout << "pressed" << std::endl;
-  }
+//  void onKeyPressed(SDL_Event& ev) override {
+//    std::cout << "pressed" << std::endl;
+//  }
 };
 
 int main() {

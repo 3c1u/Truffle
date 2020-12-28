@@ -19,6 +19,8 @@ namespace Truffle {
 
 class Dispatcher : NonCopyable {
  public:
+  using Callback = std::function<void(SDL_Event&)>;
+
   Dispatcher(SceneManager& m, Renderer& r)
       : scene_manager_(m), renderer_(r), exit_handler_([](SDL_Event&) {}) {}
 
@@ -34,24 +36,24 @@ class Dispatcher : NonCopyable {
 
     while (true) {
       // Handle SDL_Event
-      SDL_Event e;
-      if (handleEvent(&e) < 0) {
-        log(LogLevel::INFO, "Event dispatcher stopped.");
+      if (!handleEvents()) {
         return;
       }
 
       // Handle conditional callbacks, which will be invoked by mouse hover etc
       assert(scene_manager_.currentScene());
-      for (const auto& cb : scene_manager_.currentScene()->allExecCallbacks()) {
-        cb();
+      for (const auto& cb : scene_manager_.currentScene()->buttons()) {
+        cb.get().onMouseHovered();
+        cb.get().onMouseUnhovered();
       }
+
       SDL_SetRenderDrawColor(renderer_.entity(), 0xff, 0xff, 0xff, 0xff);
       SDL_RenderClear(renderer_.entity());
 
-      // Handle update events of behaviors
+      // Render behaviors
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->behaviors()) {
-        b.get().update();
+        b.get().render();
       }
 
       // Render buttons
@@ -65,25 +67,27 @@ class Dispatcher : NonCopyable {
   }
 
  private:
-  int handleEvent(SDL_Event* e) {
-    while (SDL_PollEvent(e) != 0) {
-      if (e->type == SDL_QUIT) {
-        exit_handler_(*e);
-        return -1;
+  bool handleEvents() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+      if (e.type == SDL_QUIT) {
+        exit_handler_(e);
+        return false;
       }
+
+      // Handle behaviors update
       assert(scene_manager_.currentScene());
-      for (const auto& [type, callbacks] :
-           scene_manager_.currentScene()->callbacks()) {
-        if (e->type != type) {
-          continue;
-        }
-        for (const auto& cb : callbacks) {
-          cb(*e);
-        }
-        return 0;
+      for (auto& b : scene_manager_.currentScene()->behaviors()) {
+        b.get().update(e);
+      }
+
+      // Handle button events related with hardware interruption
+      assert(scene_manager_.currentScene());
+      for (auto& b : scene_manager_.currentScene()->buttons()) {
+        b.get().onButtonPressed(e);
       }
     }
-    return 0;
+    return true;
   }
 
   Callback exit_handler_;

@@ -43,8 +43,8 @@ class ButtonEventCallback {
   bool isMouseHovered(int x, int y, int width, int height) {
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
-    if ((x <= mouse_x && mouse_x <= x + width) &&
-        (y <= mouse_y && mouse_y <= y + height)) {
+    if ((x < mouse_x && mouse_x < x + width) &&
+        (y < mouse_y && mouse_y < y + height)) {
       return true;
     }
     return false;

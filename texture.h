@@ -70,15 +70,12 @@ class ImageTexture {
  *     void onMouseButtonClicked(SDL_Event& ev) {}
  * };
  */
-class StaticImageTextureBehavior : public ImageTexture,
-                                   public FixedRenderable,
-                                   public TruffleBehavior {
+class StaticImageTextureBehavior : public ImageTexture, public TruffleBehavior {
  public:
   explicit StaticImageTextureBehavior(Renderer& renderer, std::string path,
                                       std::string name, int x, int y)
       : ImageTexture(renderer, path, name),
-        FixedRenderable(renderer, name),
-        TruffleBehavior(name),
+        TruffleBehavior(renderer, name),
         x_(x),
         y_(y) {}
 
@@ -118,23 +115,26 @@ class StaticImageTextureBehavior : public ImageTexture,
  * };
  */
 class DynamicImageTextureBehavior : public ImageTexture,
-                                    public MovableRenderable,
                                     public TruffleBehavior {
  public:
   explicit DynamicImageTextureBehavior(Renderer& renderer, std::string path,
-                                       std::string name)
+                                       std::string name, int x, int y)
       : ImageTexture(renderer, path, name),
-        MovableRenderable(renderer, name),
-        TruffleBehavior(name) {}
+        TruffleBehavior(renderer, name),
+        x(x),
+        y(y) {}
 
   ~DynamicImageTextureBehavior() { SDL_DestroyTexture(texture_); }
 
-  // MovableRenderable
-  void render(int x, int y) override {
+  // FixedRenderable
+  void render() override {
     SDL_Rect render_rect = {x, y, width_, height_};
     SDL_RenderCopy(renderer_.entity(), texture_,
                    nullptr /* TODO: introduce clip settings */, &render_rect);
   }
+
+ protected:
+  int x, y;
 };
 
 }  // namespace Truffle
