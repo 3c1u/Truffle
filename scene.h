@@ -47,15 +47,12 @@ class Scene : NonCopyable {
         [&b](SDL_Event& ev) { b.onKeyPressed(ev); });
   }
 
-  void setButton(Button& b) {
+  void setButton(ImageButton& b) {
     buttons_.push_front(b);
-    callbacks_[SDL_MOUSEBUTTONDOWN].push_back([&b](SDL_Event& ev) {
-      if (b.onMouseLeftButtonPressed(ev)) {
-        b.onClicked(ev);
-      }
-    });
-    cond_callbacks_.emplace_back(std::make_pair(
-        [&b] { return b.onMouseHovered(); }, [&b] { b.onHover(); }));
+    callbacks_[SDL_MOUSEBUTTONDOWN].push_back(
+        [&b](SDL_Event& ev) { b.onButtonPressed(ev); });
+    exec_all_callbacks_.emplace_back([&b] { b.onMouseHovered(); });
+    exec_all_callbacks_.emplace_back([&b] { b.onMouseUnhovered(); });
   }
 
   void addNextScene(ScenePtr next) { next_scenes_.emplace(next->name(), next); }
@@ -69,7 +66,7 @@ class Scene : NonCopyable {
     return behaviors_;
   }
 
-  const std::forward_list<std::reference_wrapper<Button>>& buttons() {
+  const std::forward_list<std::reference_wrapper<ImageButton>>& buttons() {
     return buttons_;
   }
 
@@ -77,24 +74,23 @@ class Scene : NonCopyable {
     return next_scenes_;
   }
 
-  const std::vector<std::pair<ConditionalCallback, ConditionalEventCallback>>&
-  conditionalCallbacks() {
-    return cond_callbacks_;
+  const std::vector<std::function<void()>>& allExecCallbacks() {
+    return exec_all_callbacks_;
   }
 
  private:
   std::string name_;
   absl::flat_hash_map<std::string, ScenePtr> next_scenes_;
   std::forward_list<std::reference_wrapper<TruffleBehavior>> behaviors_;
-  std::forward_list<std::reference_wrapper<Button>> buttons_;
+  std::forward_list<std::reference_wrapper<ImageButton>> buttons_;
 
   // Handle all callbacks in this scene. This value will be set automatically
   // by adding behaviors or buttons.
   absl::flat_hash_map<Uint32, std::vector<Callback>> callbacks_;
   // Handle all callbacks which will be invoked by events which don't send any
   // signals, only to be caused by condition.
-  std::vector<std::pair<ConditionalCallback, ConditionalEventCallback>>
-      cond_callbacks_;
+  // TODO: refactor
+  std::vector<std::function<void()>> exec_all_callbacks_;
 };
 
 using ScenePtr = Scene::ScenePtr;

@@ -42,9 +42,8 @@ class Dispatcher : NonCopyable {
 
       // Handle conditional callbacks, which will be invoked by mouse hover etc
       assert(scene_manager_.currentScene());
-      for (const auto& [cond, callback] :
-           scene_manager_.currentScene()->conditionalCallbacks()) {
-        if (cond()) callback();
+      for (const auto& cb : scene_manager_.currentScene()->allExecCallbacks()) {
+        cb();
       }
       SDL_SetRenderDrawColor(renderer_.entity(), 0xff, 0xff, 0xff, 0xff);
       SDL_RenderClear(renderer_.entity());

@@ -9,6 +9,6 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(absl REQUIRED)
 
-add_executable(Truffle main.cpp window.h non_copyable.h exception.h renderer.h dispatcher.h renderable.h texture.h logger.h behavior.h event_callback.h scene.h button.h)
+add_executable(Truffle main.cpp window.h non_copyable.h exception.h renderer.h dispatcher.h renderable.h texture.h logger.h behavior.h event_callback.h scene.h button.h stateful_object_manager.h)
 target_link_libraries(Truffle ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES}
          absl::strings absl::flat_hash_map absl::str_format_internal)

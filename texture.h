@@ -21,7 +21,7 @@ namespace Truffle {
 
 class ImageTexture {
  public:
-  explicit ImageTexture(Renderer& renderer, std::string path, std::string name)
+  ImageTexture(Renderer& renderer, std::string path, std::string name)
       : name_(name) {
     SDL_Surface* surface = IMG_Load(path.c_str());
     if (!surface) {
@@ -42,6 +42,12 @@ class ImageTexture {
   ~ImageTexture() { SDL_DestroyTexture(texture_); }
 
   SDL_Texture* entity() { return texture_; }
+
+  int width() { return width_; }
+
+  int height() { return height_; }
+
+  const std::string& textureName() { return name_; }
 
  protected:
   SDL_Texture* texture_;
@@ -111,12 +117,15 @@ class StaticImageTextureBehavior : public ImageTexture,
  *     }
  * };
  */
-class DynamicImageTextureBehavior : public ImageTexture, public MovableRenderable,
+class DynamicImageTextureBehavior : public ImageTexture,
+                                    public MovableRenderable,
                                     public TruffleBehavior {
  public:
   explicit DynamicImageTextureBehavior(Renderer& renderer, std::string path,
                                        std::string name)
-      : ImageTexture(renderer, path, name), MovableRenderable(renderer, name), TruffleBehavior(name) {}
+      : ImageTexture(renderer, path, name),
+        MovableRenderable(renderer, name),
+        TruffleBehavior(name) {}
 
   ~DynamicImageTextureBehavior() { SDL_DestroyTexture(texture_); }
 

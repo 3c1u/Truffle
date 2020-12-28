@@ -21,10 +21,12 @@ class Renderable {
   Renderable(Renderer& renderer, std::string name)
       : renderer_(renderer), name_(name) {}
 
-  const std::string& name() { return name_; }
+  const std::string& renderableName() { return name_; }
 
  protected:
   Renderer& renderer_;
+
+ private:
   std::string name_;
 };
 
