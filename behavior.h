@@ -5,7 +5,6 @@
 #ifndef TRUFFLE_BEHAVIOR_H
 #define TRUFFLE_BEHAVIOR_H
 
-#include "event_callback.h"
 #include "renderable.h"
 
 namespace Truffle {

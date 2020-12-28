@@ -22,12 +22,23 @@ using Color = SDL_Color;
 
 class ButtonEventCallback {
  public:
+  /**
+   * クリック時のコールバック、ユーザーに提供するインターフェース
+   */
+  virtual void onClick() = 0;
+
+ protected:
   virtual ~ButtonEventCallback() = default;
 
   /**
    * ボタンが押された時のコールバック
    */
   virtual void onButtonPressed(SDL_Event& ev) = 0;
+
+  /**
+   * ボタンが離された時のコールバック
+   */
+  virtual void onButtonReleased(SDL_Event& ev) = 0;
 
   /**
    * ボタンがホバーされた時のコールバック
@@ -39,7 +50,6 @@ class ButtonEventCallback {
    */
   virtual void onMouseUnhovered() = 0;
 
- protected:
   bool isMouseHovered(int x, int y, int width, int height) {
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -52,10 +62,18 @@ class ButtonEventCallback {
 
   bool isMouseLeftButtonPressed(SDL_Event& ev, int x, int y, int width,
                                 int height) {
-    if (ev.button.button != SDL_BUTTON_LEFT) {
-      return false;
+    if (ev.type == SDL_MOUSEBUTTONDOWN && ev.button.button == SDL_BUTTON_LEFT) {
+      return isMouseHovered(x, y, width, height);
     }
-    return isMouseHovered(x, y, width, height);
+    return false;
+  }
+
+  bool isMouseLeftButtonReleased(SDL_Event& ev, int x, int y, int width,
+                                 int height) {
+    if (ev.type == SDL_MOUSEBUTTONUP && ev.button.button == SDL_BUTTON_LEFT) {
+      return isMouseHovered(x, y, width, height);
+    }
+    return false;
   }
 };
 
@@ -90,6 +108,8 @@ class ImageButton : public FixedRenderable, public ButtonEventCallback {
     }
     state_manager_.defineStateTransition(ButtonState::Hovered,
                                          ButtonState::Pressed);
+    state_manager_.defineStateTransition(ButtonState::Pressed,
+                                         ButtonState::Hovered);
     state_manager_.defineStateTransition(ButtonState::Normal,
                                          ButtonState::Hovered);
     state_manager_.defineStateTransition(ButtonState::Hovered,
@@ -108,17 +128,30 @@ class ImageButton : public FixedRenderable, public ButtonEventCallback {
   }
 
   // ButtonEventCallback
-  virtual void onButtonPressed(SDL_Event& ev) override {
+  virtual void onClick() override {}
+
+  void onButtonPressed(SDL_Event& ev) override {
     auto& current_texture = state_manager_.activeStateObject();
     if (isMouseLeftButtonPressed(ev, x_, y_, current_texture.width(),
                                  current_texture.height()) &&
         state_manager_.activeState() == ButtonState::Hovered) {
       log(LogLevel::INFO, "State changed from Hovered to Pressed");
       state_manager_.stateTransition(ButtonState::Pressed);
+      onClick();
     }
   }
 
-  virtual void onMouseHovered() override {
+  void onButtonReleased(SDL_Event& ev) override {
+    auto& current_texture = state_manager_.activeStateObject();
+    if (isMouseLeftButtonReleased(ev, x_, y_, current_texture.width(),
+                                  current_texture.height()) &&
+        state_manager_.activeState() == ButtonState::Pressed) {
+      log(LogLevel::INFO, "State changed from Pressed to Hovered");
+      state_manager_.stateTransition(ButtonState::Hovered);
+    }
+  }
+
+  void onMouseHovered() override {
     auto& current_texture = state_manager_.activeStateObject();
     if (isMouseHovered(x_, y_, current_texture.width(),
                        current_texture.height()) &&
@@ -128,7 +161,7 @@ class ImageButton : public FixedRenderable, public ButtonEventCallback {
     }
   }
 
-  virtual void onMouseUnhovered() override {
+  void onMouseUnhovered() override {
     auto& current_texture = state_manager_.activeStateObject();
     if (!isMouseHovered(x_, y_, current_texture.width(),
                         current_texture.height()) &&

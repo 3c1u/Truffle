@@ -40,7 +40,7 @@ class Dispatcher : NonCopyable {
         return;
       }
 
-      // Handle conditional callbacks, which will be invoked by mouse hover etc
+      // Handle button callbacks
       assert(scene_manager_.currentScene());
       for (const auto& cb : scene_manager_.currentScene()->buttons()) {
         cb.get().onMouseHovered();
@@ -85,6 +85,7 @@ class Dispatcher : NonCopyable {
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->buttons()) {
         b.get().onButtonPressed(e);
+        b.get().onButtonReleased(e);
       }
     }
     return true;
