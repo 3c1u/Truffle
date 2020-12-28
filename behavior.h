@@ -17,8 +17,14 @@ class TruffleBehavior : public FixedRenderable {
 
   virtual ~TruffleBehavior() = default;
 
+  /**
+   * シーンの開始時に一度だけ実行されるコールバック
+   */
   virtual void start(){};
 
+  /**
+   * 毎フレーム毎に1回呼ばれるコールバック
+   */
   virtual void update(SDL_Event&){};
 
   const std::string& behaviorName() { return name_; }
@@ -39,14 +45,16 @@ class TruffleBehavior : public FixedRenderable {
  *     int x_;
  *     int y_;
  *
- *     void start() {
+ *     SampleBehavior(...) : ImageTextureBehavior(...) {}
+ *
+ *     void start() override {
  *         x_ = 0;
  *         y_ = 0;
  *     }
- *     void update() {
+ *
+ *     void update() override {
  *         x_ += 40;
  *         y_ += 40;
- *         render(x, y);
  *     }
  * };
  */
@@ -59,8 +67,6 @@ class ImageTextureBehavior : public ImageTexture, public TruffleBehavior {
         x(x),
         y(y) {}
 
-  ~ImageTextureBehavior() { SDL_DestroyTexture(texture_); }
-
   // FixedRenderable
   void render() override {
     SDL_Rect render_rect = {x, y, width_, height_};
@@ -71,6 +77,8 @@ class ImageTextureBehavior : public ImageTexture, public TruffleBehavior {
  protected:
   int x, y;
 };
+
+class TextTextureBehavior : public TextTexture, public TruffleBehavior {};
 
 }  // namespace Truffle
 

@@ -18,8 +18,6 @@
 
 namespace Truffle {
 
-using Color = SDL_Color;
-
 class ButtonEventCallback {
  public:
   /**

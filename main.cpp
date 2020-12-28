@@ -8,6 +8,7 @@
 #include "button.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 
 using Truffle::Window;
@@ -45,7 +46,11 @@ int main() {
     // TODO: provide on init manager
   int img_flags = IMG_INIT_PNG;
   if (!(IMG_Init(img_flags) & img_flags)) {
-    return false;
+    return 1;
+  }
+  // Initialize font
+  if (TTF_Init() == -1) {
+      return 1;
   }
 
   // create window
