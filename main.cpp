@@ -22,6 +22,9 @@ using Truffle::ScenePtr;
 using Truffle::Color;
 using Truffle::ImageButton;
 using Truffle::NullState;
+using Truffle::TextTextureBehavior;
+using Truffle::Font;
+using Truffle::TextTextureMode;
 
 class Genji final : public ImageTextureBehavior<NullState> /* stateless */ {
  public:
@@ -73,6 +76,23 @@ public:
     }
 };
 
+class TimeBoard : public TextTextureBehavior {
+public:
+    static constexpr std::string_view name = "genji_behavior";
+
+    explicit TimeBoard(Renderer& r, Font& f) : TextTextureBehavior(r, f, name.data(), 0, 0) {
+        auto color = Color { 0x00, 0x00, 0x00, 0xff};
+        setText(TextTextureMode::Solid, "0:00", color);
+    }
+
+    void start() override {
+        std::cout << "start" << std::endl;
+    }
+
+    void update(SDL_Event& ev) override {
+    }
+};
+
 int main() {
     // TODO: provide on init manager
   int img_flags = IMG_INIT_PNG;
@@ -94,14 +114,19 @@ int main() {
   r.init(w);
   r.setDrawColor(0xff, 0xff, 0xff, 0xff);
 
+  // Load font
+  Font f("../font/lazy.ttf", 100);
+
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-  Illustya it(r);
-  s1->setBehavior(it);
-  Genji dot(r);
-  s1->setBehavior(dot);
-  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
-  s1->setButton(ib);
+  TimeBoard tb(r, f);
+  s1->setBehavior(tb);
+//  Illustya it(r);
+//  s1->setBehavior(it);
+//  Genji dot(r);
+//  s1->setBehavior(dot);
+//  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
+//  s1->setButton(ib);
 
   // define scene manager
   SceneManager sm(s1);

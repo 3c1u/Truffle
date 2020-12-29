@@ -76,12 +76,14 @@ ImageTexturePtr ImageTextureFactory::create(std::string path,
   return std::make_shared<ImageTexture>(renderer_, path, name);
 }
 
+// https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_42.html#SEC42
+enum class TextTextureMode { Solid, Blend, Shaded };
+
 class TextTexture {
  public:
   TextTexture(Renderer& renderer, Font& font, std::string name);
   ~TextTexture() { SDL_DestroyTexture(texture_); }
 
-  // https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_42.html#SEC42
   void loadSolidTexture(std::string text, Color& fg);
   void loadBlendTexture(std::string text, Color& fg);
   void loadShadedTexture(std::string text, Color& fg, Color& bg);

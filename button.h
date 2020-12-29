@@ -73,12 +73,12 @@ class ImageButton : public Renderable, public ButtonEventCallback {
  protected:
   StatefulObjectManager<ImageTexture, ButtonState> state_manager_;
 
- private:
   bool isMouseHovered();
   bool isMouseUnhovered();
   bool isMouseLeftButtonPressed(SDL_Event& ev);
   bool isMouseLeftButtonReleased(SDL_Event& ev);
 
+ private:
   std::string name_;
 
   const int x_;
@@ -88,7 +88,7 @@ class ImageButton : public Renderable, public ButtonEventCallback {
 ImageButton::ImageButton(Renderer& r, std::string name, int x, int y,
                          std::string path_normal, std::string path_hovered,
                          std::string path_pressed)
-    : Renderable(r, name), x_(x), y_(y) {
+    : Renderable(r), x_(x), y_(y) {
   auto texture_factory = ImageTextureFactory(r);
   state_manager_.setInitStatefulObject(
       ButtonState::Normal,

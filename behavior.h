@@ -15,8 +15,7 @@ namespace Truffle {
 
 class TruffleBehavior : public Renderable {
  public:
-  TruffleBehavior(Renderer& r, std::string name)
-      : Renderable(r, name), name_(name) {}
+  TruffleBehavior(Renderer& r, std::string name) : Renderable(r), name_(name) {}
 
   virtual ~TruffleBehavior() = default;
 
@@ -127,10 +126,15 @@ class ImageTextureBehavior<NullState> : public TruffleBehavior {
   void setInitTexture(std::string path, std::string name) {
     state_object_manager_.setInitStatefulObject(
         image_texture_factory_.create(path, name));
+    init_ = true;
   }
 
   // FixedRenderable
   void render() override final {
+    if (!init_) {
+      throw TruffleException(absl::StrFormat(
+          "%s: image texture must be initialized", behaviorName()));
+    }
     auto& texture_ = state_object_manager_.activeStateObject();
     SDL_Rect render_rect = {x, y, texture_.width(), texture_.height()};
     SDL_RenderCopy(renderer_.entity(), texture_.entity(),
@@ -143,9 +147,54 @@ class ImageTextureBehavior<NullState> : public TruffleBehavior {
  private:
   ImageTextureFactory image_texture_factory_;
   StatefulObjectManager<ImageTexture, NullState> state_object_manager_;
+  bool init_ = false;
 };
 
-class TextTextureBehavior : public TruffleBehavior {};
+class TextTextureBehavior : public TruffleBehavior {
+ public:
+  explicit TextTextureBehavior(Renderer& renderer, Font& font, std::string name,
+                               int x, int y)
+      : TruffleBehavior(renderer, name),
+        current_texture(renderer, font, name),
+        x(x),
+        y(y) {}
+
+  void setText(TextTextureMode mode, std::string text, Color& fg) {
+    if (init_) {
+      throw TruffleException(absl::StrFormat(
+          "%s: image texture can't be initialized twice", behaviorName()));
+    }
+
+    if (mode == TextTextureMode::Solid)
+      current_texture.loadSolidTexture(text, fg);
+    else if (mode == TextTextureMode::Blend)
+      current_texture.loadBlendTexture(text, fg);
+    else
+      throw TruffleException(
+          absl::StrFormat("%s: unsupported texture type", behaviorName()));
+
+    init_ = true;
+  }
+
+  // FixedRenderable
+  void render() override final {
+    if (!init_) {
+      throw TruffleException(absl::StrFormat(
+          "%s: image texture must be initialized", behaviorName()));
+    }
+    SDL_Rect render_rect = {x, y, current_texture.width(),
+                            current_texture.height()};
+    SDL_RenderCopy(renderer_.entity(), current_texture.entity(),
+                   nullptr /* TODO: introduce clip settings */, &render_rect);
+  }
+
+ protected:
+  TextTexture current_texture;
+  int x, y;
+
+ private:
+  bool init_ = false;
+};
 
 }  // namespace Truffle
 
