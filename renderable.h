@@ -12,13 +12,16 @@
 
 namespace Truffle {
 
-class FixedRenderable {
+class Renderable {
  public:
-  FixedRenderable(Renderer& r, std::string name) : renderer_(r), name_(name) {}
-
-  virtual void render() = 0;
+  Renderable(Renderer& r, std::string name) : renderer_(r), name_(name) {}
 
   const std::string& renderableName() { return name_; }
+
+  /**
+   * Renderableを継承したクラスが、メンバに対する描画処理を定義する
+   */
+  virtual void render() = 0;
 
  protected:
   Renderer& renderer_;

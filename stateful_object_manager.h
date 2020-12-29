@@ -19,7 +19,7 @@ enum class NullState {};
 template <class StatefulObject, class State>
 class StatefulObjectManager {
  public:
-  StatefulObjectManager() {}
+  StatefulObjectManager() = default;
 
   void setInitStatefulObject(State init, std::shared_ptr<StatefulObject> obj) {
     if (init_) {
@@ -97,7 +97,7 @@ class StatefulObjectManager {
 template <class StatelessObject>
 class StatefulObjectManager<StatelessObject, NullState> {
  public:
-  StatefulObjectManager() {}
+  StatefulObjectManager() = default;
 
   void setInitStatefulObject(std::shared_ptr<StatelessObject> obj) {
     if (init_) {
@@ -117,7 +117,6 @@ class StatefulObjectManager<StatelessObject, NullState> {
  private:
   std::shared_ptr<StatelessObject> active_object_;
   bool init_ = false;
-  std::mutex mux_;
 };
 
 }  // namespace Truffle

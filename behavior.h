@@ -17,10 +17,10 @@ namespace {
 static constexpr bool is_false = false;
 }
 
-class TruffleBehavior : public FixedRenderable {
+class TruffleBehavior : public Renderable {
  public:
   TruffleBehavior(Renderer& r, std::string name)
-      : FixedRenderable(r, name), name_(name) {}
+      : Renderable(r, name), name_(name) {}
 
   virtual ~TruffleBehavior() = default;
 
@@ -66,36 +66,53 @@ class TruffleBehavior : public FixedRenderable {
  * };
  */
 
-template <class State = NullState>
+template <class State>
 class ImageTextureBehavior : public TruffleBehavior {
  public:
   explicit ImageTextureBehavior(Renderer& renderer, std::string name, int x,
                                 int y)
-      : TruffleBehavior(renderer, name), x(x), y(y) {}
+      : TruffleBehavior(renderer, name), image_texture_factory(renderer), x(x), y(y) {}
 
-  void setStateTransition(State from, State to, ImageTexture& from_texture,
-                          ImageTexture& to_texture) {
-    state_object_manager_.bindStatefulObject(from, from_texture);
-    state_object_manager_.bindStatefulObject(to, to_texture);
-    state_object_manager_.defineStateTransition(from, to);
-  }
-
-  void setInitState(State init, ImageTexture& texture) {
-    state_object_manager_.setInitStatefulObject(
-        init, std::shared_ptr<ImageTexture>(&texture));
+  void setInitTexture(State init, ImageTexturePtr texture) {
+    if (init_) {
+      throw TruffleException(absl::StrFormat(
+          "%s: image texture can't be initialized twice", behaviorName()));
+    }
+    state_object_manager.setInitStatefulObject(init, texture);
+    init_ = true;
   }
 
   // FixedRenderable
-  void render() override {
-    auto& active_obj = state_object_manager_.activeStateObject();
+  void render() override final {
+    if (!init_) {
+      throw TruffleException(absl::StrFormat(
+          "%s: image texture must be initialized", behaviorName()));
+    }
+    auto& active_obj = state_object_manager.activeStateObject();
     SDL_Rect render_rect = {x, y, active_obj.width(), active_obj.height()};
     SDL_RenderCopy(renderer_.entity(), active_obj.entity(),
                    nullptr /* TODO: introduce clip settings */, &render_rect);
   }
 
  protected:
-  StatefulObjectManager<ImageTexture, State> state_object_manager_;
+  bool isMouseHovered() {
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    if ((x < mouse_x &&
+         mouse_x < x + state_object_manager.activeStateObject().width()) &&
+        (y < mouse_y &&
+         mouse_y < y + state_object_manager.activeStateObject().height())) {
+      return true;
+    }
+    return false;
+  }
+
+  StatefulObjectManager<ImageTexture, State> state_object_manager;
+  ImageTextureFactory image_texture_factory;
   int x, y;
+
+ private:
+  bool init_ = false;
 };
 
 template <>
@@ -103,24 +120,41 @@ class ImageTextureBehavior<NullState> : public TruffleBehavior {
  public:
   explicit ImageTextureBehavior(Renderer& renderer, std::string name, int x,
                                 int y)
-      : TruffleBehavior(renderer, name), x(x), y(y) {}
+      : TruffleBehavior(renderer, name),
+        image_texture_factory_(renderer),
+        x(x),
+        y(y) {}
 
-  void setInitState(ImageTexture& texture) {
+  void setInitTexture(std::string path, std::string name){
     state_object_manager_.setInitStatefulObject(
-        std::shared_ptr<ImageTexture>(&texture));
+        image_texture_factory_.create(path, name));
   }
 
   // FixedRenderable
-  void render() override {
-    auto& active_obj = state_object_manager_.activeStateObject();
-    SDL_Rect render_rect = {x, y, active_obj.width(), active_obj.height()};
-    SDL_RenderCopy(renderer_.entity(), active_obj.entity(),
+  void render() override final {
+    auto& texture_ = state_object_manager_.activeStateObject();
+    SDL_Rect render_rect = {x, y, texture_.width(), texture_.height()};
+    SDL_RenderCopy(renderer_.entity(), texture_.entity(),
                    nullptr /* TODO: introduce clip settings */, &render_rect);
   }
 
  protected:
-  StatefulObjectManager<ImageTexture, NullState> state_object_manager_;
+  bool isMouseHovered() {
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    auto& texture_ = state_object_manager_.activeStateObject();
+    if ((x < mouse_x && mouse_x < x + texture_.width()) &&
+        (y < mouse_y && mouse_y < y + texture_.height())) {
+      return true;
+    }
+    return false;
+  }
+
   int x, y;
+
+ private:
+  ImageTextureFactory image_texture_factory_;
+  StatefulObjectManager<ImageTexture, NullState> state_object_manager_;
 };
 
 class TextTextureBehavior : public TruffleBehavior {};

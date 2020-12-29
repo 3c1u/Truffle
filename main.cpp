@@ -21,14 +21,14 @@ using Truffle::Scene;
 using Truffle::ScenePtr;
 using Truffle::Color;
 using Truffle::ImageButton;
+using Truffle::NullState;
 
-class Genji final : public ImageTextureBehavior<> /* stateless */ {
+class Genji final : public ImageTextureBehavior<NullState> /* stateless */ {
  public:
   static constexpr std::string_view name = "genji_behavior";
 
   explicit Genji(Renderer& r) : ImageTextureBehavior(r, name.data(), 0, 0) {
-      ImageTexture texture_(r, "../testdata/genji.jpg", name.data());
-      setInitState(texture_);
+    setInitTexture("../testdata/genji.jpg", name.data());
   }
 
   void start() override {
@@ -40,6 +40,31 @@ class Genji final : public ImageTextureBehavior<> /* stateless */ {
           std::cout << "keydown" << std::endl;
       }
   }
+};
+
+enum class IllustyaState {
+    Normal,
+    Hovered
+};
+
+class Illustya final : public ImageTextureBehavior<IllustyaState> {
+public:
+    static constexpr std::string_view name = "genji_behavior";
+
+    explicit Illustya(Renderer& r) : ImageTextureBehavior(r, name.data(), 0, 0) {
+        setInitTexture(IllustyaState::Normal,
+                       std::make_shared<ImageTexture>(r, "../testdata/genji.jpg", name.data()));
+    }
+
+    void start() override {
+        std::cout << "start" << std::endl;
+    }
+
+    void update(SDL_Event& ev) override {
+        if (ev.type == SDL_KEYDOWN) {
+            std::cout << "keydown" << std::endl;
+        }
+    }
 };
 
 int main() {
@@ -65,10 +90,10 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-//  Genji dot(r);
-//  s1->setBehavior(dot);
-  ImageButton ib(r, "illustya", 0, 0, "../testdata/genji.jpg");
-  s1->setButton(ib);
+  Genji dot(r);
+  s1->setBehavior(dot);
+//  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
+//  s1->setButton(ib);
 
   // define scene manager
   SceneManager sm(s1);
