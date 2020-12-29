@@ -5,10 +5,17 @@
 #ifndef TRUFFLE_BEHAVIOR_H
 #define TRUFFLE_BEHAVIOR_H
 
+#include <memory>
+
 #include "renderable.h"
+#include "stateful_object_manager.h"
 #include "texture.h"
 
 namespace Truffle {
+
+namespace {
+static constexpr bool is_false = false;
+}
 
 class TruffleBehavior : public FixedRenderable {
  public:
@@ -58,27 +65,65 @@ class TruffleBehavior : public FixedRenderable {
  *     }
  * };
  */
-class ImageTextureBehavior : public ImageTexture, public TruffleBehavior {
+
+template <class State = NullState>
+class ImageTextureBehavior : public TruffleBehavior {
  public:
-  explicit ImageTextureBehavior(Renderer& renderer, std::string path,
-                                std::string name, int x, int y)
-      : ImageTexture(renderer, path, name),
-        TruffleBehavior(renderer, name),
-        x(x),
-        y(y) {}
+  explicit ImageTextureBehavior(Renderer& renderer, std::string name, int x,
+                                int y)
+      : TruffleBehavior(renderer, name), x(x), y(y) {}
+
+  void setStateTransition(State from, State to, ImageTexture& from_texture,
+                          ImageTexture& to_texture) {
+    state_object_manager_.bindStatefulObject(from, from_texture);
+    state_object_manager_.bindStatefulObject(to, to_texture);
+    state_object_manager_.defineStateTransition(from, to);
+  }
+
+  void setInitState(State init, ImageTexture& texture) {
+    state_object_manager_.setInitStatefulObject(
+        init, std::shared_ptr<ImageTexture>(&texture));
+  }
 
   // FixedRenderable
   void render() override {
-    SDL_Rect render_rect = {x, y, width_, height_};
-    SDL_RenderCopy(renderer_.entity(), texture_,
+    auto& active_obj = state_object_manager_.activeStateObject();
+    SDL_Rect render_rect = {x, y, active_obj.width(), active_obj.height()};
+    SDL_RenderCopy(renderer_.entity(), active_obj.entity(),
                    nullptr /* TODO: introduce clip settings */, &render_rect);
   }
 
  protected:
+  StatefulObjectManager<ImageTexture, State> state_object_manager_;
   int x, y;
 };
 
-class TextTextureBehavior : public TextTexture, public TruffleBehavior {};
+template <>
+class ImageTextureBehavior<NullState> : public TruffleBehavior {
+ public:
+  explicit ImageTextureBehavior(Renderer& renderer, std::string name, int x,
+                                int y)
+      : TruffleBehavior(renderer, name), x(x), y(y) {}
+
+  void setInitState(ImageTexture& texture) {
+    state_object_manager_.setInitStatefulObject(
+        std::shared_ptr<ImageTexture>(&texture));
+  }
+
+  // FixedRenderable
+  void render() override {
+    auto& active_obj = state_object_manager_.activeStateObject();
+    SDL_Rect render_rect = {x, y, active_obj.width(), active_obj.height()};
+    SDL_RenderCopy(renderer_.entity(), active_obj.entity(),
+                   nullptr /* TODO: introduce clip settings */, &render_rect);
+  }
+
+ protected:
+  StatefulObjectManager<ImageTexture, NullState> state_object_manager_;
+  int x, y;
+};
+
+class TextTextureBehavior : public TruffleBehavior {};
 
 }  // namespace Truffle
 

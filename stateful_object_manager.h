@@ -9,8 +9,12 @@
 #include <unordered_map>
 
 #include "exception.h"
+#include "logger.h"
 
 namespace Truffle {
+
+// ステートレスである際にStatefulObjectManagerに与えるステート定義
+enum class NullState {};
 
 template <class StatefulObject, class State>
 class StatefulObjectManager {
@@ -86,6 +90,32 @@ class StatefulObjectManager {
   std::unordered_map<State, std::shared_ptr<StatefulObject>>
       binded_stateful_object_;
   std::unordered_map<State, std::set<State>> transition_table_;
+  bool init_ = false;
+  std::mutex mux_;
+};
+
+template <class StatelessObject>
+class StatefulObjectManager<StatelessObject, NullState> {
+ public:
+  StatefulObjectManager() {}
+
+  void setInitStatefulObject(std::shared_ptr<StatelessObject> obj) {
+    if (init_) {
+      throw TruffleException("init stateful object can't be called twice");
+    }
+    active_object_ = obj;
+    init_ = true;
+  }
+
+  StatelessObject& activeStateObject() {
+    if (!init_) {
+      throw TruffleException("StateMachine doesn't be initialized");
+    }
+    return *active_object_.get();
+  }
+
+ private:
+  std::shared_ptr<StatelessObject> active_object_;
   bool init_ = false;
   std::mutex mux_;
 };
