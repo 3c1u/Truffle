@@ -53,7 +53,11 @@ public:
 
     explicit Illustya(Renderer& r) : ImageTextureBehavior(r, name.data(), 0, 0) {
         setInitTexture(IllustyaState::Normal,
-                       std::make_shared<ImageTexture>(r, "../testdata/genji.jpg", name.data()));
+                       image_texture_factory.create("../testdata/home.png", name.data()));
+        state_object_manager.bindStatefulObject(
+                IllustyaState::Hovered, image_texture_factory.create("../testdata/top.png", name.data()));
+        state_object_manager.defineStateTransition(IllustyaState::Normal, IllustyaState::Hovered);
+        state_object_manager.defineStateTransition(IllustyaState::Hovered, IllustyaState::Normal);
     }
 
     void start() override {
@@ -61,8 +65,10 @@ public:
     }
 
     void update(SDL_Event& ev) override {
-        if (ev.type == SDL_KEYDOWN) {
-            std::cout << "keydown" << std::endl;
+        if (ev.type == SDL_KEYDOWN && state_object_manager.activeState() == IllustyaState::Normal) {
+            state_object_manager.stateTransition(IllustyaState::Hovered);
+        } else if (ev.type == SDL_KEYUP && state_object_manager.activeState() == IllustyaState::Hovered) {
+            state_object_manager.stateTransition(IllustyaState::Normal);
         }
     }
 };
@@ -90,10 +96,12 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-  Genji dot(r);
-  s1->setBehavior(dot);
-//  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
-//  s1->setButton(ib);
+//  Illustya it(r);
+//  s1->setBehavior(it);
+//  Genji dot(r);
+//  s1->setBehavior(dot);
+  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
+  s1->setButton(ib);
 
   // define scene manager
   SceneManager sm(s1);

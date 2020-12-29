@@ -11,6 +11,7 @@
 #include <set>
 #include <unordered_map>
 
+#include "event_publisher.h"
 #include "exception.h"
 #include "logger.h"
 #include "stateful_object_manager.h"
@@ -80,6 +81,7 @@ class ImageButton : public Renderable, public ButtonEventCallback {
 
  private:
   bool isMouseHovered();
+  bool isMouseUnhovered();
   bool isMouseLeftButtonPressed(SDL_Event& ev);
   bool isMouseLeftButtonReleased(SDL_Event& ev);
 
@@ -146,7 +148,6 @@ void ImageButton::onButtonReleased(SDL_Event& ev) {
 }
 
 void ImageButton::onMouseHovered() {
-  auto& current_texture = state_manager_.activeStateObject();
   if (isMouseHovered() && state_manager_.activeState() == ButtonState::Normal) {
     log(LogLevel::INFO, "State changed from Normal to Hovered");
     state_manager_.stateTransition(ButtonState::Hovered);
@@ -154,8 +155,7 @@ void ImageButton::onMouseHovered() {
 }
 
 void ImageButton::onMouseUnhovered() {
-  auto& current_texture = state_manager_.activeStateObject();
-  if (!isMouseHovered() &&
+  if (isMouseUnhovered() &&
       state_manager_.activeState() == ButtonState::Hovered) {
     log(LogLevel::INFO, "State changed from Hovered to Normal");
     state_manager_.stateTransition(ButtonState::Normal);
@@ -165,13 +165,19 @@ void ImageButton::onMouseUnhovered() {
 bool ImageButton::isMouseHovered() {
   int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
-  if ((x_ < mouse_x &&
-       mouse_x < x_ + state_manager_.activeStateObject().width()) &&
-      (y_ < mouse_y &&
-       mouse_y < y_ + state_manager_.activeStateObject().height())) {
-    return true;
-  }
-  return false;
+  return x_ < mouse_x &&
+         mouse_x < x_ + state_manager_.activeStateObject().width() &&
+         y_ < mouse_y &&
+         mouse_y < y_ + state_manager_.activeStateObject().height();
+}
+
+bool ImageButton::isMouseUnhovered() {
+  int mouse_x, mouse_y;
+  SDL_GetMouseState(&mouse_x, &mouse_y);
+  return !(x_ < mouse_x &&
+           mouse_x < x_ + state_manager_.activeStateObject().width() &&
+           y_ < mouse_y &&
+           mouse_y < y_ + state_manager_.activeStateObject().height());
 }
 
 bool ImageButton::isMouseLeftButtonPressed(SDL_Event& ev) {

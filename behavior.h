@@ -13,10 +13,6 @@
 
 namespace Truffle {
 
-namespace {
-static constexpr bool is_false = false;
-}
-
 class TruffleBehavior : public Renderable {
  public:
   TruffleBehavior(Renderer& r, std::string name)
@@ -71,7 +67,10 @@ class ImageTextureBehavior : public TruffleBehavior {
  public:
   explicit ImageTextureBehavior(Renderer& renderer, std::string name, int x,
                                 int y)
-      : TruffleBehavior(renderer, name), image_texture_factory(renderer), x(x), y(y) {}
+      : TruffleBehavior(renderer, name),
+        image_texture_factory(renderer),
+        x(x),
+        y(y) {}
 
   void setInitTexture(State init, ImageTexturePtr texture) {
     if (init_) {
@@ -125,7 +124,7 @@ class ImageTextureBehavior<NullState> : public TruffleBehavior {
         x(x),
         y(y) {}
 
-  void setInitTexture(std::string path, std::string name){
+  void setInitTexture(std::string path, std::string name) {
     state_object_manager_.setInitStatefulObject(
         image_texture_factory_.create(path, name));
   }
@@ -139,17 +138,6 @@ class ImageTextureBehavior<NullState> : public TruffleBehavior {
   }
 
  protected:
-  bool isMouseHovered() {
-    int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-    auto& texture_ = state_object_manager_.activeStateObject();
-    if ((x < mouse_x && mouse_x < x + texture_.width()) &&
-        (y < mouse_y && mouse_y < y + texture_.height())) {
-      return true;
-    }
-    return false;
-  }
-
   int x, y;
 
  private:

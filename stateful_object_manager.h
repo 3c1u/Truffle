@@ -16,10 +16,20 @@ namespace Truffle {
 // ステートレスである際にStatefulObjectManagerに与えるステート定義
 enum class NullState {};
 
+/**
+ * 状態遷移及び状態遷移に伴うオブジェクトの変化をハンドリングするクラス
+ *
+ * @tparam StatefulObject
+ * @tparam State
+ */
 template <class StatefulObject, class State>
 class StatefulObjectManager {
  public:
   StatefulObjectManager() = default;
+
+  //  bool finalized() { return finalized_; }
+
+  //  bool finalize() { finalized_ = true; }
 
   void setInitStatefulObject(State init, std::shared_ptr<StatefulObject> obj) {
     if (init_) {
@@ -50,6 +60,9 @@ class StatefulObjectManager {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");
     }
+    //    if (!finalized_) {
+    //        assert(false);
+    //    }
     assert(transition_table_.find(current_state_) != transition_table_.end());
     std::unique_lock<std::mutex> l(mux_);
     if (transition_table_[current_state_].find(to) ==
@@ -71,6 +84,9 @@ class StatefulObjectManager {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");
     }
+    //    if (!finalized_) {
+    //        assert(false);
+    //    }
     auto current_obj = binded_stateful_object_.find(current_state_);
     if (current_obj == binded_stateful_object_.end()) {
       // 状態に一致するStatefulObjectがなければ、現在の状態になる前の状態におけるStatefulObjectを返却する。
@@ -91,9 +107,15 @@ class StatefulObjectManager {
       binded_stateful_object_;
   std::unordered_map<State, std::set<State>> transition_table_;
   bool init_ = false;
+  bool finalized_ = false;
   std::mutex mux_;
 };
 
+/**
+ * 状態が遷移しない場合の特殊化クラス
+ *
+ * @tparam StatelessObject
+ */
 template <class StatelessObject>
 class StatefulObjectManager<StatelessObject, NullState> {
  public:
