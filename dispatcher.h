@@ -43,8 +43,8 @@ class Dispatcher : NonCopyable {
       // Handle button callbacks
       assert(scene_manager_.currentScene());
       for (const auto& cb : scene_manager_.currentScene()->buttons()) {
-        cb.get().onMouseHovered();
-        cb.get().onMouseUnhovered();
+        cb.get()._onMouseHovered();
+        cb.get()._onMouseUnhovered();
       }
 
       SDL_SetRenderDrawColor(renderer_.entity(), 0xff, 0xff, 0xff, 0xff);
@@ -84,8 +84,8 @@ class Dispatcher : NonCopyable {
       // Handle button events related with hardware interruption
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->buttons()) {
-        b.get().onButtonPressed(e);
-        b.get().onButtonReleased(e);
+        b.get()._onButtonPressed(e);
+        b.get()._onButtonReleased(e);
       }
     }
     return true;
