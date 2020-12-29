@@ -56,8 +56,8 @@ public:
                        image_texture_factory.create("../testdata/home.png", name.data()));
         state_object_manager.bindStatefulObject(
                 IllustyaState::Hovered, image_texture_factory.create("../testdata/top.png", name.data()));
-        state_object_manager.defineStateTransition(IllustyaState::Normal, IllustyaState::Hovered);
-        state_object_manager.defineStateTransition(IllustyaState::Hovered, IllustyaState::Normal);
+        state_object_manager.setStateTransition(IllustyaState::Normal, IllustyaState::Hovered);
+        state_object_manager.setStateTransition(IllustyaState::Hovered, IllustyaState::Normal);
     }
 
     void start() override {
@@ -96,10 +96,10 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-//  Illustya it(r);
-//  s1->setBehavior(it);
-//  Genji dot(r);
-//  s1->setBehavior(dot);
+  Illustya it(r);
+  s1->setBehavior(it);
+  Genji dot(r);
+  s1->setBehavior(dot);
   ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
   s1->setButton(ib);
 

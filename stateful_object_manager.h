@@ -27,10 +27,6 @@ class StatefulObjectManager {
  public:
   StatefulObjectManager() = default;
 
-  //  bool finalized() { return finalized_; }
-
-  //  bool finalize() { finalized_ = true; }
-
   void setInitStatefulObject(State init, std::shared_ptr<StatefulObject> obj) {
     if (init_) {
       throw TruffleException("init stateful object can't be called twice");
@@ -48,7 +44,7 @@ class StatefulObjectManager {
     binded_stateful_object_[s] = obj;
   }
 
-  void defineStateTransition(State from, State to) {
+  void setStateTransition(State from, State to) {
     auto src_state = transition_table_.find(from);
     if (src_state == transition_table_.end()) {
       transition_table_[from] = std::set<State>();
@@ -60,9 +56,6 @@ class StatefulObjectManager {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");
     }
-    //    if (!finalized_) {
-    //        assert(false);
-    //    }
     assert(transition_table_.find(current_state_) != transition_table_.end());
     std::unique_lock<std::mutex> l(mux_);
     if (transition_table_[current_state_].find(to) ==
@@ -84,9 +77,6 @@ class StatefulObjectManager {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");
     }
-    //    if (!finalized_) {
-    //        assert(false);
-    //    }
     auto current_obj = binded_stateful_object_.find(current_state_);
     if (current_obj == binded_stateful_object_.end()) {
       // 状態に一致するStatefulObjectがなければ、現在の状態になる前の状態におけるStatefulObjectを返却する。
@@ -107,7 +97,6 @@ class StatefulObjectManager {
       binded_stateful_object_;
   std::unordered_map<State, std::set<State>> transition_table_;
   bool init_ = false;
-  bool finalized_ = false;
   std::mutex mux_;
 };
 

@@ -21,12 +21,6 @@ namespace Truffle {
 
 class ButtonEventCallback {
  public:
-  /**
-   * クリック時のコールバック、ユーザーに提供するインターフェース
-   */
-  virtual void onClick() = 0;
-
- protected:
   virtual ~ButtonEventCallback() = default;
 
   /**
@@ -67,17 +61,17 @@ class ImageButton : public Renderable, public ButtonEventCallback {
 
   const std::string& buttonName() { return name_; }
 
-  // ButtonEventCallback
-  virtual void onClick() override {}
-
   // FixedRenderable
   void render() override final;
 
   // ButtonEventCallback
-  void onButtonPressed(SDL_Event& ev) override final;
-  void onButtonReleased(SDL_Event& ev) override final;
-  void onMouseHovered() override final;
-  void onMouseUnhovered() override final;
+  void onButtonPressed(SDL_Event& ev) override;
+  void onButtonReleased(SDL_Event& ev) override;
+  void onMouseHovered() override;
+  void onMouseUnhovered() override;
+
+ protected:
+  StatefulObjectManager<ImageTexture, ButtonState> state_manager_;
 
  private:
   bool isMouseHovered();
@@ -85,7 +79,6 @@ class ImageButton : public Renderable, public ButtonEventCallback {
   bool isMouseLeftButtonPressed(SDL_Event& ev);
   bool isMouseLeftButtonReleased(SDL_Event& ev);
 
-  StatefulObjectManager<ImageTexture, ButtonState> state_manager_;
   std::string name_;
 
   const int x_;
@@ -111,14 +104,11 @@ ImageButton::ImageButton(Renderer& r, std::string name, int x, int y,
         ButtonState::Pressed,
         texture_factory.create(path_pressed, name + "_pressed"));
   }
-  state_manager_.defineStateTransition(ButtonState::Hovered,
-                                       ButtonState::Pressed);
-  state_manager_.defineStateTransition(ButtonState::Pressed,
-                                       ButtonState::Hovered);
-  state_manager_.defineStateTransition(ButtonState::Normal,
-                                       ButtonState::Hovered);
-  state_manager_.defineStateTransition(ButtonState::Hovered,
-                                       ButtonState::Normal);
+  // define state transition
+  state_manager_.setStateTransition(ButtonState::Hovered, ButtonState::Pressed);
+  state_manager_.setStateTransition(ButtonState::Pressed, ButtonState::Hovered);
+  state_manager_.setStateTransition(ButtonState::Normal, ButtonState::Hovered);
+  state_manager_.setStateTransition(ButtonState::Hovered, ButtonState::Normal);
 }
 
 void ImageButton::render() {
@@ -134,7 +124,6 @@ void ImageButton::onButtonPressed(SDL_Event& ev) {
       state_manager_.activeState() == ButtonState::Hovered) {
     log(LogLevel::INFO, "State changed from Hovered to Pressed");
     state_manager_.stateTransition(ButtonState::Pressed);
-    onClick();
   }
 }
 
