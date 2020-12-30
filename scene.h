@@ -99,8 +99,8 @@ class SceneManager : NonCopyable {
     } catch (TruffleException&) {
       throw TruffleException("Provided scene is not registered");
     }
-    state_manager_.bindStatefulObject(from, to);
-    state_manager_.bindStatefulObject(to, from);
+    state_manager_.setStateTransition(from, to);
+    state_manager_.setStateTransition(to, from);
   }
 
   /**
@@ -109,7 +109,13 @@ class SceneManager : NonCopyable {
    * @param to
    * @return
    */
-  bool transitScene(SceneState to) { state_manager_.stateTransition(to); }
+  bool transitScene(SceneState to) {
+    SDL_Event transition_event;
+    transition_event.type = SDL_USEREVENT;
+    transition_event.user.code = SCENE_CHANGED;
+    SDL_PushEvent(&transition_event);
+//    state_manager_.stateTransition(to);
+  }
 
   /**
    * 現在アクティブなシーンを返す
@@ -118,7 +124,14 @@ class SceneManager : NonCopyable {
    */
   const Scene& currentScene() { return state_manager_.activeStateObject(); }
 
- private:
+  /**
+   * 現在のシーンの状態を返す
+   *
+   * @return
+   */
+  SceneState currentSceneState() { return state_manager_.activeState(); }
+
+// private:
   StatefulObjectManager<Scene, SceneState> state_manager_;
 };
 

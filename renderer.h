@@ -13,6 +13,8 @@ namespace Truffle {
 
 class Renderer : NonCopyable {
  public:
+  ~Renderer() { SDL_DestroyRenderer(renderer_entity_); }
+
   void init(Window& window) {
     if (initialized_) {
       return;

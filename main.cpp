@@ -26,6 +26,7 @@ using Truffle::TextTextureMode;
 using Truffle::StatefulObjectManager;
 using Truffle::TruffleBehavior;
 using Truffle::TextTexture;
+using Truffle::ButtonState;
 using Truffle::ImageTextureFactory;
 
 class Genji final : public TruffleBehavior {
@@ -34,7 +35,7 @@ class Genji final : public TruffleBehavior {
 
   explicit Genji(Renderer& r)
     : TruffleBehavior(name.data()),
-      texture_(r, "../testdata/home.jpg", name.data(), 0, 0) {
+      texture_(r, "../testdata/genji.jpg", name.data(), 0, 0) {
       renderables.emplace_front(texture_);
   }
 
@@ -122,14 +123,27 @@ private:
     TextTexture texture_;
 };
 
+using Truffle::SceneState;
+
 class ImageButton2 : public ImageButton {
  public:
-   ImageButton2(Renderer& r, std::string name, int x, int y, std::string path1, std::string path2, std::string path3)
-      : ImageButton(r, name, x, y, path1, path2, path3) {}
-};
+   ImageButton2(SceneManager<SceneState>& manager,
+               Renderer& r, std::string name, int x, int y,
+               std::string path1, std::string path2)
+      : ImageButton(r, name, x, y, path1, path2), manager_(manager) {}
 
-enum class SceneState {
-  Init,
+   void onMouseHovered() override final {
+     state_manager.stateTransition(ButtonState::Hovered);
+     std::cout << "imagebutton2 hovered" << std::endl;
+   }
+
+   void onButtonPressed() override final {
+//     assert(manager_.currentSceneState() == SceneState::Init);
+     manager_.transitScene(SceneState::Clicked);
+   }
+
+  private:
+   SceneManager<SceneState>& manager_;
 };
 
 int main() {
@@ -160,17 +174,26 @@ int main() {
   SceneManager<SceneState> manager;
   // create scene
   auto& s1 = manager.addScene(SceneState::Init, "root_scene");
-//  TimeBoard tb(r, f);
-//  s1->setBehavior(tb);
-//  Illustya it(r);
-//  s1->setBehavior(it);
-//  Genji dot(r);
-//  s1->setBehavior(dot);
-  ImageButton ib(r, "illustya", 150, 150, "../testdata/home.png");
+  TimeBoard tb(r, f);
+  s1.setBehavior(tb);
+  Illustya it(r);
+  s1.setBehavior(it);
+  Genji dot(r);
+  s1.setBehavior(dot);
+  ImageButton2 ib(manager, r, "illustya", 150, 150, "../testdata/home.png", "../testdata/top.png");
   s1.setButton(ib);
+
+  auto& s2 = manager.addScene(SceneState::Clicked, "clicked_scene");
+  TimeBoard tb3(r, f);
+  s2.setBehavior(tb3);
+  ImageButton2 i2b(manager, r, "illustya", 150, 150, "../testdata/home.png", "../testdata/top.png");
+  s2.setButton(i2b);
+
+  manager.setSceneTransition(SceneState::Init, SceneState::Clicked);
 
   Dispatcher d(manager, r);
   d.run();
 
+  SDL_Quit();
   return 0;
 }

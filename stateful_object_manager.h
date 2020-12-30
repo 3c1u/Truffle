@@ -87,20 +87,22 @@ class StatefulObjectManager {
       throw TruffleException("StateMachine doesn't be initialized");
     }
     assert(transition_table_.find(current_state_) != transition_table_.end());
-    std::unique_lock<std::mutex> l(mux_);
-    if (transition_table_[current_state_].find(to) ==
-        transition_table_[current_state_].end()) {
-      throw TruffleException("Can't execute unregistered transition");
+    {
+      std::unique_lock<std::mutex> l(mux_);
+      if (transition_table_[current_state_].find(to) ==
+          transition_table_[current_state_].end()) {
+        throw TruffleException("Can't execute unregistered transition");
+      }
+      if (binded_stateful_object_.find(current_state_) !=
+          binded_stateful_object_.end()) {
+        prev_state_object_ = binded_stateful_object_.at(current_state_);
+      } else {
+        log(LogLevel::INFO,
+            "previous StatefulObject can't be loaded because current state has "
+            "no StatefulObject");
+      }
+      current_state_ = to;
     }
-    if (binded_stateful_object_.find(current_state_) !=
-        binded_stateful_object_.end()) {
-      prev_state_object_ = binded_stateful_object_.at(current_state_);
-    } else {
-      log(LogLevel::INFO,
-          "previous StatefulObject can't be loaded because current state has "
-          "no StatefulObject");
-    }
-    current_state_ = to;
   }
 
   /**
@@ -110,6 +112,7 @@ class StatefulObjectManager {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");
     }
+    std::unique_lock<std::mutex> l(mux_);
     auto current_obj = binded_stateful_object_.find(current_state_);
     if (current_obj == binded_stateful_object_.end()) {
       /**
@@ -129,6 +132,7 @@ class StatefulObjectManager {
    * @return
    */
   StatefulObject& statefulObject(State state) {
+    std::unique_lock<std::mutex> l(mux_);
     if (binded_stateful_object_.find(state) == binded_stateful_object_.end()) {
       throw TruffleException("Can't retrieve corresponding object");
     }

@@ -17,6 +17,11 @@
 
 namespace Truffle {
 
+enum class SceneState {
+  Init,
+  Clicked
+};
+
 template <class SceneState>
 class Dispatcher : NonCopyable {
  public:
@@ -56,7 +61,6 @@ class Dispatcher : NonCopyable {
           r.get().render();
         }
       }
-
       // Render buttons
       for (auto& b : scene_manager_.currentScene().buttons()) {
         b.get().render();
@@ -74,12 +78,14 @@ class Dispatcher : NonCopyable {
         exit_handler_(e);
         return false;
       }
-
+      if (e.type == SDL_USEREVENT && e.user.code == SCENE_CHANGED) {
+        scene_manager_.state_manager_.stateTransition(SceneState::Clicked);
+        std::cout << "state changed" << std::endl;
+      }
       // Handle behaviors update
       for (auto& b : scene_manager_.currentScene().behaviors()) {
         b.get().update(e);
       }
-
       // Handle button events related with hardware interruption
       for (auto& b : scene_manager_.currentScene().buttons()) {
         b.get()._onButtonPressed(e);
