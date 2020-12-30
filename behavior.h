@@ -33,7 +33,7 @@ class TruffleBehavior {
   const std::string& behaviorName() { return name_; }
 
   const std::forward_list<std::reference_wrapper<Renderable>>&
-  targetRenderableStates() {
+  targetRenderables() {
     return renderables;
   }
 

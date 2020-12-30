@@ -19,39 +19,6 @@
 
 namespace Truffle {
 
-class ButtonEventCallback {
- public:
-  virtual ~ButtonEventCallback() = default;
-
-  /**
-   * ボタンが押された時のコールバック
-   */
-  virtual void onButtonPressed() = 0;
-
-  virtual void _onButtonPressed(SDL_Event& ev) = 0;
-
-  /**
-   * ボタンが離された時のコールバック
-   */
-  virtual void onButtonReleased() = 0;
-
-  virtual void _onButtonReleased(SDL_Event& ev) = 0;
-
-  /**
-   * ボタンがホバーされた時のコールバック
-   */
-  virtual void onMouseHovered() = 0;
-
-  virtual void _onMouseHovered() = 0;
-
-  /**
-   * ボタンがアンホバーされた時のコールバック
-   */
-  virtual void onMouseUnhovered() = 0;
-
-  virtual void _onMouseUnhovered() = 0;
-};
-
 enum class ButtonState {
   Normal,
   Hovered,
@@ -59,17 +26,57 @@ enum class ButtonState {
 };
 
 /**
+ * 任意のボタンを表現するクラスの基底となるクラス。
+ * ボタンに必要なメンバ関数やコールバックを提供する。
+ */
+class ButtonBase : public Renderable {
+ public:
+  ButtonBase(Renderer& r) : Renderable(r) {}
+
+  virtual const std::string& buttonName() = 0;
+
+  // Renderable
+  virtual void render() override {}
+
+  /**
+   * ボタンが押された時のコールバック
+   */
+  virtual void onButtonPressed() = 0;
+
+  /**
+   * ボタンが離された時のコールバック
+   */
+  virtual void onButtonReleased() = 0;
+
+  /**
+   * ボタンがホバーされた時のコールバック
+   */
+  virtual void onMouseHovered() = 0;
+
+  /**
+   * ボタンがアンホバーされた時のコールバック
+   */
+  virtual void onMouseUnhovered() = 0;
+
+  virtual void _onButtonPressed(SDL_Event& ev) = 0;
+  virtual void _onButtonReleased(SDL_Event& ev) = 0;
+  virtual void _onMouseHovered() = 0;
+  virtual void _onMouseUnhovered() = 0;
+};
+
+/**
  * 基礎的なボタンの機能を提供するクラス
  */
-class ImageButton : public Renderable, public ButtonEventCallback {
+class ImageButton : public ButtonBase {
  public:
   ImageButton(Renderer& r, std::string name, int x, int y,
               std::string path_normal, std::string path_hovered = "",
               std::string path_pressed = "");
 
-  const std::string& buttonName() { return name_; }
+  // ButtonBase
+  const std::string& buttonName() override { return name_; }
 
-  // FixedRenderable
+  // Renderable
   void render() override final;
 
   // ButtonEventCallback
@@ -101,7 +108,7 @@ class ImageButton : public Renderable, public ButtonEventCallback {
 ImageButton::ImageButton(Renderer& r, std::string name, int x, int y,
                          std::string path_normal, std::string path_hovered,
                          std::string path_pressed)
-    : Renderable(r), x_(x), y_(y) {
+    : ButtonBase(r), x_(x), y_(y) {
   auto texture_factory = ImageTextureFactory(r);
   state_manager_.setInitStatefulObject(
       ButtonState::Normal,

@@ -41,7 +41,7 @@ class Scene : NonCopyable {
     behaviors_.push_front(b);
   }
 
-  void setButton(ImageButton& b) {
+  void setButton(ButtonBase& b) {
     log(LogLevel::INFO, absl::StrFormat("button %s registered to scene %s",
                                         b.buttonName(), name_));
     buttons_.push_front(b);
@@ -54,7 +54,7 @@ class Scene : NonCopyable {
     return behaviors_;
   }
 
-  const std::forward_list<std::reference_wrapper<ImageButton>>& buttons() {
+  const std::forward_list<std::reference_wrapper<ButtonBase>>& buttons() {
     return buttons_;
   }
 
@@ -67,7 +67,7 @@ class Scene : NonCopyable {
   absl::flat_hash_map<std::string, ScenePtr> next_scenes_;
 
   std::forward_list<std::reference_wrapper<TruffleBehavior>> behaviors_;
-  std::forward_list<std::reference_wrapper<ImageButton>> buttons_;
+  std::forward_list<std::reference_wrapper<ButtonBase>> buttons_;
 };
 
 using ScenePtr = Scene::ScenePtr;

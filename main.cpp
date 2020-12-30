@@ -148,14 +148,14 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-  TimeBoard tb(r, f);
-  s1->setBehavior(tb);
-  Illustya it(r);
-  s1->setBehavior(it);
+//  TimeBoard tb(r, f);
+//  s1->setBehavior(tb);
+//  Illustya it(r);
+//  s1->setBehavior(it);
 //  Genji dot(r);
 //  s1->setBehavior(dot);
-//  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
-//  s1->setButton(ib);
+  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
+  s1->setButton(ib);
 
   // define scene manager
   SceneManager sm(s1);

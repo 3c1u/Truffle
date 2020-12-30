@@ -53,7 +53,7 @@ class Dispatcher : NonCopyable {
       // Render behaviors
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->behaviors()) {
-        for (auto& r : b.get().targetRenderableStates()) {
+        for (auto& r : b.get().targetRenderables()) {
           r.get().render();
         }
       }

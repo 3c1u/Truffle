@@ -10,8 +10,7 @@
 namespace Truffle {
 
 // Thread safe logger
-static const std::shared_ptr<spdlog::logger> logger =
-    spdlog::stdout_color_mt("console");
+static const std::shared_ptr<spdlog::logger> logger = spdlog::default_logger();
 
 enum class LogLevel {
   INFO,
