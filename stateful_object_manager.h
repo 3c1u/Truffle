@@ -27,6 +27,12 @@ class StatefulObjectManager {
  public:
   StatefulObjectManager() = default;
 
+  /**
+   * ステートマシンにおける初期状態を定義
+   *
+   * @param init 初期状態を示す状態
+   * @param obj 初期状態を示すオブジェクト
+   */
   void setInitStatefulObject(State init, std::shared_ptr<StatefulObject> obj) {
     if (init_) {
       throw TruffleException("init stateful object can't be called twice");
@@ -40,10 +46,22 @@ class StatefulObjectManager {
     init_ = true;
   }
 
-  void bindStatefulObject(State s, std::shared_ptr<StatefulObject> obj) {
-    binded_stateful_object_[s] = obj;
+  /**
+   * 状態とオブジェクトを紐付ける
+   *
+   * @param state 紐付けたい状態
+   * @param obj 紐付けたいオブジェクト
+   */
+  void bindStatefulObject(State state, std::shared_ptr<StatefulObject> obj) {
+    binded_stateful_object_[state] = obj;
   }
 
+  /**
+   * 状態遷移の定義
+   *
+   * @param from ソース状態
+   * @param to 対象状態
+   */
   void setStateTransition(State from, State to) {
     auto src_state = transition_table_.find(from);
     if (src_state == transition_table_.end()) {
@@ -52,6 +70,11 @@ class StatefulObjectManager {
     transition_table_[from].insert(to);
   }
 
+  /**
+   * 状態遷移を行う
+   *
+   * @param to 対象状態
+   */
   void stateTransition(State to) {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");
@@ -73,20 +96,41 @@ class StatefulObjectManager {
     current_state_ = to;
   }
 
+  /**
+   * 現在の状態におけるオブジェクトを取得する
+   */
   StatefulObject& activeStateObject() {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");
     }
     auto current_obj = binded_stateful_object_.find(current_state_);
     if (current_obj == binded_stateful_object_.end()) {
-      // 状態に一致するStatefulObjectがなければ、現在の状態になる前の状態におけるStatefulObjectを返却する。
-      // 初期状態においては必ずStatefulObjectが存在することが保証されているので、最大で初期状態のStatefulObjectの参照を返却する。
+      /**
+       * 状態に一致するStatefulObjectがなければ、現在の状態になる前の状態におけるStatefulObjectを返却する。
+       * 初期状態においては必ずStatefulObjectが存在することが保証されているので、最大で初期状態のStatefulObjectの参照を返却する。
+       */
       assert(prev_state_object_ != nullptr);
       return *prev_state_object_;
     }
     return *binded_stateful_object_.at(current_state_);
   }
 
+  /**
+   * 与えられた状態に対応するオブジェクトを取得する。もし対応するオブジェクトがなければ例外を返す。
+   *
+   * @param state 状態
+   * @return
+   */
+  StatefulObject& statefulObject(State state) {
+    if (binded_stateful_object_.find(state) == binded_stateful_object_.end()) {
+      throw TruffleException("Can't retrieve corresponding object");
+    }
+    return *binded_stateful_object_.at(state);
+  }
+
+  /**
+   * 現在の状態を取得する
+   */
   State activeState() { return current_state_; }
 
  private:
@@ -110,6 +154,12 @@ class StatefulObjectManager<StatelessObject, NullState> {
  public:
   StatefulObjectManager() = default;
 
+  /**
+   * ステートマシンにおける初期状態を定義
+   *
+   * @param init 初期状態を示す状態
+   * @param obj 初期状態を示すオブジェクト
+   */
   void setInitStatefulObject(std::shared_ptr<StatelessObject> obj) {
     if (init_) {
       throw TruffleException("init stateful object can't be called twice");
@@ -118,6 +168,9 @@ class StatefulObjectManager<StatelessObject, NullState> {
     init_ = true;
   }
 
+  /**
+   * 現在の状態におけるオブジェクトを取得する
+   */
   StatelessObject& activeStateObject() {
     if (!init_) {
       throw TruffleException("StateMachine doesn't be initialized");

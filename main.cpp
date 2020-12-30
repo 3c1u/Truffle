@@ -15,23 +15,26 @@ using Truffle::Window;
 using Truffle::Renderer;
 using Truffle::Dispatcher;
 using Truffle::ImageTexture;
-using Truffle::ImageTextureBehavior;
 using Truffle::SceneManager;
 using Truffle::Scene;
 using Truffle::ScenePtr;
 using Truffle::Color;
 using Truffle::ImageButton;
 using Truffle::NullState;
-using Truffle::TextTextureBehavior;
 using Truffle::Font;
 using Truffle::TextTextureMode;
+using Truffle::StatefulObjectManager;
+using Truffle::TruffleBehavior;
+using Truffle::ImageTextureFactory;
 
-class Genji final : public ImageTextureBehavior<NullState> /* stateless */ {
+class Genji final : public TruffleBehavior {
  public:
   static constexpr std::string_view name = "genji_behavior";
 
-  explicit Genji(Renderer& r) : ImageTextureBehavior(r, name.data(), 0, 0) {
-    setInitTexture("../testdata/genji.jpg", name.data());
+  explicit Genji(Renderer& r)
+    : TruffleBehavior(name.data()),
+      texture_(r, "../testdata/genji.jpg", name.data(), 0, 0) {
+      renderables.emplace_front(texture_);
   }
 
   void start() override {
@@ -43,6 +46,9 @@ class Genji final : public ImageTextureBehavior<NullState> /* stateless */ {
           std::cout << "keydown" << std::endl;
       }
   }
+
+private:
+    ImageTexture texture_;
 };
 
 enum class IllustyaState {
@@ -50,17 +56,27 @@ enum class IllustyaState {
     Hovered
 };
 
-class Illustya final : public ImageTextureBehavior<IllustyaState> {
+class Illustya final : public TruffleBehavior {
 public:
-    static constexpr std::string_view name = "genji_behavior";
+    static constexpr std::string_view name = "illustya_behavior";
 
-    explicit Illustya(Renderer& r) : ImageTextureBehavior(r, name.data(), 0, 0) {
-        setInitTexture(IllustyaState::Normal,
-                       image_texture_factory.create("../testdata/home.png", name.data()));
-        state_object_manager.bindStatefulObject(
-                IllustyaState::Hovered, image_texture_factory.create("../testdata/top.png", name.data()));
-        state_object_manager.setStateTransition(IllustyaState::Normal, IllustyaState::Hovered);
-        state_object_manager.setStateTransition(IllustyaState::Hovered, IllustyaState::Normal);
+    explicit Illustya(Renderer& r) : TruffleBehavior(name.data()), factory_(r) {
+        // Define state machine
+        state_manager_.setInitStatefulObject(
+                IllustyaState::Normal,
+                factory_.create("../testdata/home.png", name.data(), 0, 0));
+        state_manager_.bindStatefulObject(
+                IllustyaState::Hovered,
+                factory_.create("../testdata/top.png", name.data(), 50, 0));
+        state_manager_.setStateTransition(IllustyaState::Normal, IllustyaState::Hovered);
+        state_manager_.setStateTransition(IllustyaState::Hovered, IllustyaState::Normal);
+
+        // register objects as renderable
+        auto& home = state_manager_.statefulObject(IllustyaState::Normal);
+        renderables.emplace_front(home);
+        auto& top = state_manager_.statefulObject(IllustyaState::Hovered);
+        top.disableRender();
+        renderables.emplace_front(top);
     }
 
     void start() override {
@@ -68,30 +84,38 @@ public:
     }
 
     void update(SDL_Event& ev) override {
-        if (ev.type == SDL_KEYDOWN && state_object_manager.activeState() == IllustyaState::Normal) {
-            state_object_manager.stateTransition(IllustyaState::Hovered);
-        } else if (ev.type == SDL_KEYUP && state_object_manager.activeState() == IllustyaState::Hovered) {
-            state_object_manager.stateTransition(IllustyaState::Normal);
+        if (ev.type == SDL_KEYDOWN && state_manager_.activeState() == IllustyaState::Normal) {
+            state_manager_.stateTransition(IllustyaState::Hovered);
+            state_manager_.statefulObject(IllustyaState::Normal).disableRender();
+            state_manager_.statefulObject(IllustyaState::Hovered).enableRender();
+        } else if (ev.type == SDL_KEYUP && state_manager_.activeState() == IllustyaState::Hovered) {
+            state_manager_.stateTransition(IllustyaState::Normal);
+            state_manager_.statefulObject(IllustyaState::Hovered).disableRender();
+            state_manager_.statefulObject(IllustyaState::Normal).enableRender();
         }
     }
+
+private:
+    ImageTextureFactory factory_;
+    StatefulObjectManager<ImageTexture, IllustyaState> state_manager_;
 };
 
-class TimeBoard : public TextTextureBehavior {
-public:
-    static constexpr std::string_view name = "genji_behavior";
-
-    explicit TimeBoard(Renderer& r, Font& f) : TextTextureBehavior(r, f, name.data(), 0, 0) {
-        auto color = Color { 0x00, 0x00, 0x00, 0xff};
-        setText(TextTextureMode::Solid, "0:00", color);
-    }
-
-    void start() override {
-        std::cout << "start" << std::endl;
-    }
-
-    void update(SDL_Event& ev) override {
-    }
-};
+//class TimeBoard : public TextTextureBehavior {
+//public:
+//    static constexpr std::string_view name = "genji_behavior";
+//
+//    explicit TimeBoard(Renderer& r, Font& f) : TextTextureBehavior(r, f, name.data(), 0, 0) {
+//        auto color = Color { 0x00, 0x00, 0x00, 0xff};
+//        setText(TextTextureMode::Blend, "0:00", color);
+//    }
+//
+//    void start() override {
+//        std::cout << "start" << std::endl;
+//    }
+//
+//    void update(SDL_Event& ev) override {
+//    }
+//};
 
 int main() {
     // TODO: provide on init manager
@@ -119,10 +143,10 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-  TimeBoard tb(r, f);
-  s1->setBehavior(tb);
-//  Illustya it(r);
-//  s1->setBehavior(it);
+//  TimeBoard tb(r, f);
+//  s1->setBehavior(tb);
+  Illustya it(r);
+  s1->setBehavior(it);
 //  Genji dot(r);
 //  s1->setBehavior(dot);
 //  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");

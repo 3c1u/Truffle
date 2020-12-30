@@ -53,7 +53,9 @@ class Dispatcher : NonCopyable {
       // Render behaviors
       assert(scene_manager_.currentScene());
       for (auto& b : scene_manager_.currentScene()->behaviors()) {
-        b.get().render();
+        for (auto& r : b.get().targetRenderableStates()) {
+          r.get().render();
+        }
       }
 
       // Render buttons

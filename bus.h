@@ -6,9 +6,8 @@
 #define TRUFFLE_BUS_H
 
 namespace Truffle {
-/**
- * 上流のビヘイビアが下流のビヘイビアにメッセージを送るためのバスを表現するクラス
- */
-class SimplexMessageBus {};
+
+class EventMessageBus {};
+
 }  // namespace Truffle
 #endif  // TRUFFLE_BUS_H

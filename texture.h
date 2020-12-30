@@ -21,9 +21,10 @@
 
 namespace Truffle {
 
-class ImageTexture {
+class ImageTexture : public Renderable {
  public:
-  ImageTexture(Renderer& renderer, std::string path, std::string name);
+  ImageTexture(Renderer& renderer, std::string path, std::string name, int x,
+               int y);
   ~ImageTexture() { SDL_DestroyTexture(texture_); }
 
   int width() { return width_; }
@@ -31,18 +32,25 @@ class ImageTexture {
   SDL_Texture* entity() { return texture_; }
   const std::string& textureName() { return name_; }
 
- protected:
+  // Renderable
+  void render() override final;
+
+  int x, y;
+
+ private:
   SDL_Texture* texture_;
   int width_;
   int height_;
+  int x_;
+  int y_;
   std::string name_;
 };
 
 using ImageTexturePtr = std::shared_ptr<ImageTexture>;
 
 ImageTexture::ImageTexture(Renderer& renderer, std::string path,
-                           std::string name)
-    : name_(name) {
+                           std::string name, int x, int y)
+    : Renderable(renderer), name_(name), x(x), y(y) {
   SDL_Surface* surface = IMG_Load(path.c_str());
   if (!surface) {
     throw TruffleException(
@@ -59,11 +67,19 @@ ImageTexture::ImageTexture(Renderer& renderer, std::string path,
   SDL_FreeSurface(surface);
 }
 
+void ImageTexture::render() {
+  if (do_render_) {
+    SDL_Rect render_rect = {x, y, width_, height_};
+    SDL_RenderCopy(renderer_.entity(), texture_,
+                   nullptr /* TODO: introduce clip settings */, &render_rect);
+  }
+}
+
 class ImageTextureFactory {
  public:
   ImageTextureFactory(Renderer& r);
 
-  ImageTexturePtr create(std::string path, std::string name);
+  ImageTexturePtr create(std::string path, std::string name, int x, int y);
 
  private:
   Renderer& renderer_;
@@ -71,17 +87,17 @@ class ImageTextureFactory {
 
 ImageTextureFactory::ImageTextureFactory(Renderer& r) : renderer_(r) {}
 
-ImageTexturePtr ImageTextureFactory::create(std::string path,
-                                            std::string name) {
-  return std::make_shared<ImageTexture>(renderer_, path, name);
+ImageTexturePtr ImageTextureFactory::create(std::string path, std::string name,
+                                            int x, int y) {
+  return std::make_shared<ImageTexture>(renderer_, path, name, x, y);
 }
 
 // https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_42.html#SEC42
 enum class TextTextureMode { Solid, Blend, Shaded };
 
-class TextTexture {
+class TextTexture : public Renderable {
  public:
-  TextTexture(Renderer& renderer, Font& font, std::string name);
+  TextTexture(Renderer& renderer, Font& font, std::string name, int x, int y);
   ~TextTexture() { SDL_DestroyTexture(texture_); }
 
   void loadSolidTexture(std::string text, Color& fg);
@@ -93,8 +109,12 @@ class TextTexture {
   SDL_Texture* entity() { return texture_; }
   const std::string& textureName() { return name_; }
 
+  // Renderable
+  void render() override final;
+
+  int x, y;
+
  private:
-  Renderer& renderer_;
   Font& font_;
   SDL_Texture* texture_;
   int width_;
@@ -102,8 +122,9 @@ class TextTexture {
   std::string name_;
 };
 
-TextTexture::TextTexture(Renderer& renderer, Font& font, std::string name)
-    : renderer_(renderer), font_(font), name_(name) {}
+TextTexture::TextTexture(Renderer& renderer, Font& font, std::string name,
+                         int x, int y)
+    : Renderable(renderer), font_(font), name_(name), x(x), y(y) {}
 
 void TextTexture::loadSolidTexture(std::string text, Color& fg) {
   if (!texture_) {
@@ -161,13 +182,21 @@ void TextTexture::loadShadedTexture(std::string text, Color& fg, Color& bg) {
   SDL_FreeSurface(surface);
 }
 
+void TextTexture::render() {
+  if (do_render_) {
+    SDL_Rect render_rect = {x, y, width_, height_};
+    SDL_RenderCopy(renderer_.entity(), texture_,
+                   nullptr /* TODO: introduce clip settings */, &render_rect);
+  }
+}
+
 using TextTexturePtr = std::shared_ptr<TextTexture>;
 
 class TextTextureFactory {
  public:
   TextTextureFactory(Renderer& r, Font& font);
 
-  TextTexturePtr create(std::string name);
+  TextTexturePtr create(std::string name, int x, int y);
 
  private:
   Font& font_;
@@ -175,10 +204,10 @@ class TextTextureFactory {
 };
 
 TextTextureFactory::TextTextureFactory(Renderer& r, Font& font)
-    : font_(font), renderer_(renderer_) {}
+    : font_(font), renderer_(r) {}
 
-TextTexturePtr TextTextureFactory::create(std::string name) {
-  return std::make_shared<TextTexture>(renderer_, font_, name);
+TextTexturePtr TextTextureFactory::create(std::string name, int x, int y) {
+  return std::make_shared<TextTexture>(renderer_, font_, name, x, y);
 }
 
 }  // namespace Truffle
