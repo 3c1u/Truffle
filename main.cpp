@@ -25,6 +25,7 @@ using Truffle::Font;
 using Truffle::TextTextureMode;
 using Truffle::StatefulObjectManager;
 using Truffle::TruffleBehavior;
+using Truffle::TextTexture;
 using Truffle::ImageTextureFactory;
 
 class Genji final : public TruffleBehavior {
@@ -100,22 +101,26 @@ private:
     StatefulObjectManager<ImageTexture, IllustyaState> state_manager_;
 };
 
-//class TimeBoard : public TextTextureBehavior {
-//public:
-//    static constexpr std::string_view name = "genji_behavior";
-//
-//    explicit TimeBoard(Renderer& r, Font& f) : TextTextureBehavior(r, f, name.data(), 0, 0) {
-//        auto color = Color { 0x00, 0x00, 0x00, 0xff};
-//        setText(TextTextureMode::Blend, "0:00", color);
-//    }
-//
-//    void start() override {
-//        std::cout << "start" << std::endl;
-//    }
-//
-//    void update(SDL_Event& ev) override {
-//    }
-//};
+class TimeBoard : public TruffleBehavior {
+public:
+    static constexpr std::string_view name = "genji_behavior";
+
+    explicit TimeBoard(Renderer& r, Font& f)
+        : TruffleBehavior(name.data()), texture_(r, f, name.data(), 0, 0) {
+        renderables.emplace_front(texture_);
+    }
+
+    void start() override {
+        auto color = Color { 0x00, 0x00, 0x00, 0xff};
+        texture_.loadBlendTexture("0:00", color);
+    }
+
+    void update(SDL_Event& ev) override {
+    }
+
+private:
+    TextTexture texture_;
+};
 
 int main() {
     // TODO: provide on init manager
@@ -143,8 +148,8 @@ int main() {
 
   // create scene
   ScenePtr s1 = std::make_shared<Scene>("root_scene");
-//  TimeBoard tb(r, f);
-//  s1->setBehavior(tb);
+  TimeBoard tb(r, f);
+  s1->setBehavior(tb);
   Illustya it(r);
   s1->setBehavior(it);
 //  Genji dot(r);
