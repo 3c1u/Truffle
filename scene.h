@@ -16,6 +16,7 @@
 #include "logger.h"
 #include "non_copyable.h"
 #include "renderable.h"
+#include "stateful_object_manager.h"
 
 namespace Truffle {
 
@@ -23,17 +24,15 @@ class Scene : NonCopyable {
  public:
   using ScenePtr = std::shared_ptr<Scene>;
 
-  Scene(std::string name) : name_(name) {}
+  Scene(std::string scene_name) : name_(scene_name) {}
 
-  ~Scene() { next_scenes_.clear(); }
-
-  void initScene() {
+  void initScene() const& {
     for (auto& cb : behaviors_) {
       cb.get().start();
     }
   }
 
-  std::string& name() { return name_; }
+  const std::string& sceneName() { return name_; }
 
   void setBehavior(TruffleBehavior& b) {
     log(LogLevel::INFO, absl::StrFormat("behavior %s registered to scene %s",
@@ -47,24 +46,18 @@ class Scene : NonCopyable {
     buttons_.push_front(b);
   }
 
-  void addNextScene(ScenePtr next) { next_scenes_.emplace(next->name(), next); }
-
-  const std::forward_list<std::reference_wrapper<TruffleBehavior>>&
-  behaviors() {
+  const std::forward_list<std::reference_wrapper<TruffleBehavior>>& behaviors()
+      const& {
     return behaviors_;
   }
 
-  const std::forward_list<std::reference_wrapper<ButtonBase>>& buttons() {
+  const std::forward_list<std::reference_wrapper<ButtonBase>>& buttons()
+      const& {
     return buttons_;
-  }
-
-  const absl::flat_hash_map<std::string, ScenePtr>& nextScenes() {
-    return next_scenes_;
   }
 
  private:
   std::string name_;
-  absl::flat_hash_map<std::string, ScenePtr> next_scenes_;
 
   std::forward_list<std::reference_wrapper<TruffleBehavior>> behaviors_;
   std::forward_list<std::reference_wrapper<ButtonBase>> buttons_;
@@ -72,30 +65,61 @@ class Scene : NonCopyable {
 
 using ScenePtr = Scene::ScenePtr;
 
+template <class SceneState>
 class SceneManager : NonCopyable {
  public:
-  SceneManager(ScenePtr root_scene) : current_scene_(root_scene) {}
-
-  bool transitScene(std::string name) {
-    assert(current_scene_);
-    const auto& scene = current_scene_->nextScenes().find(name);
-    if (scene != current_scene_->nextScenes().end()) {
-      std::unique_lock l(mux_);
-      current_scene_ = scene->second;
-      log(LogLevel::INFO,
-          absl::StrFormat("Scene transition to %s succeeded", name));
-      current_scene_->initScene();
-      return true;
+  /**
+   * シーンの状態を登録する。生成されたシーンの参照を返す。
+   *
+   * @param state
+   * @param scene_name
+   * @return
+   */
+  Scene& addScene(SceneState state, std::string scene_name) {
+    if (state_manager_.initialized()) {
+      state_manager_.bindStatefulObject(state,
+                                        std::make_shared<Scene>(scene_name));
+    } else {
+      state_manager_.setInitStatefulObject(state,
+                                           std::make_shared<Scene>(scene_name));
     }
-    log(LogLevel::WARN, absl::StrFormat("Missing candidate scene %s", name));
-    return false;
+    return state_manager_.statefulObject(state);
   }
 
-  ScenePtr currentScene() { return current_scene_; }
+  /**
+   * シーンの遷移を定義する。与えられたシーンが未作成であれば例外を返す。
+   *
+   * @param from
+   * @param to
+   */
+  void setSceneTransition(SceneState from, SceneState to) {
+    try {
+      state_manager_.statefulObject(from);
+      state_manager_.statefulObject(to);
+    } catch (TruffleException&) {
+      throw TruffleException("Provided scene is not registered");
+    }
+    state_manager_.bindStatefulObject(from, to);
+    state_manager_.bindStatefulObject(to, from);
+  }
+
+  /**
+   * シーン遷移を行う
+   *
+   * @param to
+   * @return
+   */
+  bool transitScene(SceneState to) { state_manager_.stateTransition(to); }
+
+  /**
+   * 現在アクティブなシーンを返す
+   *
+   * @return
+   */
+  const Scene& currentScene() { return state_manager_.activeStateObject(); }
 
  private:
-  std::mutex mux_;
-  ScenePtr current_scene_;
+  StatefulObjectManager<Scene, SceneState> state_manager_;
 };
 
 }  // namespace Truffle

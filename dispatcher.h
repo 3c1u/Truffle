@@ -17,22 +17,23 @@
 
 namespace Truffle {
 
+template <class SceneState>
 class Dispatcher : NonCopyable {
  public:
   using Callback = std::function<void(SDL_Event&)>;
 
-  Dispatcher(SceneManager& m, Renderer& r)
+  Dispatcher(SceneManager<SceneState>& m, Renderer& r)
       : scene_manager_(m), renderer_(r), exit_handler_([](SDL_Event&) {}) {}
 
-  Dispatcher(SceneManager& m, Renderer& r, Callback dispatcher_exit_callback)
+  Dispatcher(SceneManager<SceneState>& m, Renderer& r,
+             Callback dispatcher_exit_callback)
       : scene_manager_(m),
         renderer_(r),
         exit_handler_(dispatcher_exit_callback) {}
 
   void run() {
     // Call startup functions on root scene
-    assert(scene_manager_.currentScene());
-    scene_manager_.currentScene()->initScene();
+    scene_manager_.currentScene().initScene();
 
     while (true) {
       // Handle SDL_Event
@@ -41,8 +42,7 @@ class Dispatcher : NonCopyable {
       }
 
       // Handle button callbacks
-      assert(scene_manager_.currentScene());
-      for (const auto& cb : scene_manager_.currentScene()->buttons()) {
+      for (const auto& cb : scene_manager_.currentScene().buttons()) {
         cb.get()._onMouseHovered();
         cb.get()._onMouseUnhovered();
       }
@@ -51,16 +51,14 @@ class Dispatcher : NonCopyable {
       SDL_RenderClear(renderer_.entity());
 
       // Render behaviors
-      assert(scene_manager_.currentScene());
-      for (auto& b : scene_manager_.currentScene()->behaviors()) {
+      for (auto& b : scene_manager_.currentScene().behaviors()) {
         for (auto& r : b.get().targetRenderables()) {
           r.get().render();
         }
       }
 
       // Render buttons
-      assert(scene_manager_.currentScene());
-      for (auto& b : scene_manager_.currentScene()->buttons()) {
+      for (auto& b : scene_manager_.currentScene().buttons()) {
         b.get().render();
       }
 
@@ -78,14 +76,12 @@ class Dispatcher : NonCopyable {
       }
 
       // Handle behaviors update
-      assert(scene_manager_.currentScene());
-      for (auto& b : scene_manager_.currentScene()->behaviors()) {
+      for (auto& b : scene_manager_.currentScene().behaviors()) {
         b.get().update(e);
       }
 
       // Handle button events related with hardware interruption
-      assert(scene_manager_.currentScene());
-      for (auto& b : scene_manager_.currentScene()->buttons()) {
+      for (auto& b : scene_manager_.currentScene().buttons()) {
         b.get()._onButtonPressed(e);
         b.get()._onButtonReleased(e);
       }
@@ -94,7 +90,7 @@ class Dispatcher : NonCopyable {
   }
 
   Callback exit_handler_;
-  SceneManager& scene_manager_;
+  SceneManager<SceneState>& scene_manager_;
   Renderer& renderer_;
 };
 }  // namespace Truffle

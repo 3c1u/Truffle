@@ -34,7 +34,7 @@ class Genji final : public TruffleBehavior {
 
   explicit Genji(Renderer& r)
     : TruffleBehavior(name.data()),
-      texture_(r, "../testdata/genji.jpg", name.data(), 0, 0) {
+      texture_(r, "../testdata/home.jpg", name.data(), 0, 0) {
       renderables.emplace_front(texture_);
   }
 
@@ -122,6 +122,16 @@ private:
     TextTexture texture_;
 };
 
+class ImageButton2 : public ImageButton {
+ public:
+   ImageButton2(Renderer& r, std::string name, int x, int y, std::string path1, std::string path2, std::string path3)
+      : ImageButton(r, name, x, y, path1, path2, path3) {}
+};
+
+enum class SceneState {
+  Init,
+};
+
 int main() {
     // TODO: provide on init manager
   int img_flags = IMG_INIT_PNG;
@@ -146,21 +156,20 @@ int main() {
   // Load font
   Font f("../font/lazy.ttf", 100);
 
+  // define scene manager
+  SceneManager<SceneState> manager;
   // create scene
-  ScenePtr s1 = std::make_shared<Scene>("root_scene");
+  auto& s1 = manager.addScene(SceneState::Init, "root_scene");
 //  TimeBoard tb(r, f);
 //  s1->setBehavior(tb);
 //  Illustya it(r);
 //  s1->setBehavior(it);
 //  Genji dot(r);
 //  s1->setBehavior(dot);
-  ImageButton ib(r, "illustya", 150, 150, "../testdata/genji.jpg");
-  s1->setButton(ib);
+  ImageButton ib(r, "illustya", 150, 150, "../testdata/home.png");
+  s1.setButton(ib);
 
-  // define scene manager
-  SceneManager sm(s1);
-
-  Dispatcher d(sm, r);
+  Dispatcher d(manager, r);
   d.run();
 
   return 0;

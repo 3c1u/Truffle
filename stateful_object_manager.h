@@ -28,6 +28,13 @@ class StatefulObjectManager {
   StatefulObjectManager() = default;
 
   /**
+   * 初期状態が定義されたか否か
+   *
+   * @return
+   */
+  bool initialized() { return init_; }
+
+  /**
    * ステートマシンにおける初期状態を定義
    *
    * @param init 初期状態を示す状態
