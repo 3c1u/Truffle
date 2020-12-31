@@ -63,12 +63,12 @@ void MouseEventPublisher::run() {
     if (consumer_.isMousePointerHovered(mouse_x, mouse_y)) {
       SDL_Event mouse_hovered_event;
       mouse_hovered_event.type = SDL_USEREVENT;
-      mouse_hovered_event.user.code = MOUSE_HOVERED;
+      mouse_hovered_event.user.code = EV_MOUSE_HOVERED;
       SDL_PushEvent(&mouse_hovered_event);
     } else if (consumer_.isMousePointerUnhovered(mouse_x, mouse_y)) {
       SDL_Event mouse_unhovered_event;
       mouse_unhovered_event.type = SDL_USEREVENT;
-      mouse_unhovered_event.user.code = MOUSE_UNHOVERED;
+      mouse_unhovered_event.user.code = EV_MOUSE_UNHOVERED;
       SDL_PushEvent(&mouse_unhovered_event);
     }
   }

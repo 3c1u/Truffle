@@ -138,8 +138,8 @@ class ImageButton2 : public ImageButton {
    }
 
    void onButtonPressed() override final {
-//     assert(manager_.currentSceneState() == SceneState::Init);
-     manager_.transitScene(SceneState::Clicked);
+     assert(manager_.currentSceneState() == SceneState::Init);
+     manager_.sendSceneTransitionSignal(SceneState::Clicked);
    }
 
   private:

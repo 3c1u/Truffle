@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <string>
 
 #include "behavior.h"
@@ -104,35 +105,44 @@ class SceneManager : NonCopyable {
   }
 
   /**
-   * シーン遷移を行う
-   *
-   * @param to
+   * シーン遷移イベントを発行する
+   * @param to 遷移先
    * @return
    */
-  bool transitScene(SceneState to) {
+  bool sendSceneTransitionSignal(SceneState to) {
+    // SDL_PushEventはスレッドセーフだがstd::queueはスレッドセーフではないので、
+    // シーン遷移キューとイベントキューの不整合を防ぐためにロックを獲る
+    std::unique_lock<std::mutex> lock(mux_);
+    pending_scene_transition_.push(to);
     SDL_Event transition_event;
     transition_event.type = SDL_USEREVENT;
-    transition_event.user.code = SCENE_CHANGED;
+    transition_event.user.type = EV_SCENE_CHANGED;
     SDL_PushEvent(&transition_event);
-//    state_manager_.stateTransition(to);
+  }
+
+  bool transitScene() {
+    std::unique_lock<std::mutex> lock(mux_);
+    auto to = pending_scene_transition_.front();
+    pending_scene_transition_.pop();
+    state_manager_.stateTransition(to);
   }
 
   /**
    * 現在アクティブなシーンを返す
-   *
    * @return
    */
   const Scene& currentScene() { return state_manager_.activeStateObject(); }
 
   /**
    * 現在のシーンの状態を返す
-   *
    * @return
    */
   SceneState currentSceneState() { return state_manager_.activeState(); }
 
-// private:
+ private:
+  std::queue<SceneState> pending_scene_transition_;
   StatefulObjectManager<Scene, SceneState> state_manager_;
+  std::mutex mux_;
 };
 
 }  // namespace Truffle

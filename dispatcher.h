@@ -19,7 +19,8 @@ namespace Truffle {
 
 enum class SceneState {
   Init,
-  Clicked
+  Clicked,
+  Limit,
 };
 
 template <class SceneState>
@@ -78,9 +79,8 @@ class Dispatcher : NonCopyable {
         exit_handler_(e);
         return false;
       }
-      if (e.type == SDL_USEREVENT && e.user.code == SCENE_CHANGED) {
-        scene_manager_.state_manager_.stateTransition(SceneState::Clicked);
-        std::cout << "state changed" << std::endl;
+      if (e.user.type == EV_SCENE_CHANGED) {
+        scene_manager_.transitScene();
       }
       // Handle behaviors update
       for (auto& b : scene_manager_.currentScene().behaviors()) {
