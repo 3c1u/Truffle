@@ -38,14 +38,23 @@ class TruffleBehavior {
     renderables_.push_front(renderable);
   }
 
-  const std::string& name() const& { return name_; }
-  const std::forward_list<std::reference_wrapper<Renderable>>&
+  /**
+   * メッセージキューを登録する
+   * @param message_queue_ptr
+   */
+  void setMessageQueue(std::shared_ptr<std::queue<Message>> message_queue_ptr) {
+    message_queue_ = message_queue_ptr;
+  }
+
+  [[nodiscard]] const std::string& name() const& { return name_; }
+  [[nodiscard]] const std::forward_list<std::reference_wrapper<Renderable>>&
   targetRenderables() const& {
     return renderables_;
   }
 
  private:
   std::forward_list<std::reference_wrapper<Renderable>> renderables_;
+  std::shared_ptr<std::queue<Message>> message_queue_;
   std::string name_;
 };
 

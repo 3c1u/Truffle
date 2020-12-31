@@ -13,6 +13,7 @@
 #include <string>
 
 #include "behavior.h"
+#include "bus.h"
 #include "button.h"
 #include "logger.h"
 #include "non_copyable.h"
@@ -25,19 +26,20 @@ class Scene : NonCopyable {
  public:
   using ScenePtr = std::shared_ptr<Scene>;
 
-  Scene(std::string scene_name) : name_(scene_name) {}
+  explicit Scene(std::string scene_name);
 
   void initScene() const&;
   void setBehavior(TruffleBehavior& b);
   void setButton(ButtonBase& b);
 
-  const std::string& name() const& { return name_; }
-  const absl::flat_hash_map<std::string,
-                            std::reference_wrapper<TruffleBehavior>>&
+  [[nodiscard]] const std::string& name() const& { return name_; }
+  [[nodiscard]] const absl::flat_hash_map<
+      std::string, std::reference_wrapper<TruffleBehavior>>&
   behaviors() const& {
     return behaviors_;
   }
-  const absl::flat_hash_map<std::string, std::reference_wrapper<ButtonBase>>&
+  [[nodiscard]] const absl::flat_hash_map<std::string,
+                                          std::reference_wrapper<ButtonBase>>&
   buttons() const& {
     return buttons_;
   }
@@ -45,10 +47,14 @@ class Scene : NonCopyable {
  private:
   std::string name_;
 
+  EventMessageBus& bus_;
   absl::flat_hash_map<std::string, std::reference_wrapper<TruffleBehavior>>
       behaviors_;
   absl::flat_hash_map<std::string, std::reference_wrapper<ButtonBase>> buttons_;
 };
+
+Scene::Scene(std::string scene_name)
+    : name_(scene_name), bus_(EventMessageBus::get()) {}
 
 void Scene::initScene() const& {
   for (const auto& [_, cb] : behaviors_) {
@@ -63,6 +69,8 @@ void Scene::setBehavior(TruffleBehavior& b) {
   }
   log(LogLevel::INFO,
       absl::StrFormat("behavior %s registered to scene %s", b.name(), name_));
+  auto queue = bus_.getMessageQueue(b.name());
+  b.setMessageQueue(queue);
   behaviors_.emplace(b.name(), b);
 }
 
