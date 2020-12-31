@@ -27,31 +27,15 @@ class Scene : NonCopyable {
 
   Scene(std::string scene_name) : name_(scene_name) {}
 
-  void initScene() const& {
-    for (auto& cb : behaviors_) {
-      cb.get().start();
-    }
-  }
+  void initScene() const&;
+  void setBehavior(TruffleBehavior& b);
+  void setButton(ButtonBase& b);
 
-  const std::string& sceneName() { return name_; }
-
-  void setBehavior(TruffleBehavior& b) {
-    log(LogLevel::INFO, absl::StrFormat("behavior %s registered to scene %s",
-                                        b.behaviorName(), name_));
-    behaviors_.push_front(b);
-  }
-
-  void setButton(ButtonBase& b) {
-    log(LogLevel::INFO, absl::StrFormat("button %s registered to scene %s",
-                                        b.buttonName(), name_));
-    buttons_.push_front(b);
-  }
-
+  const std::string& name() const& { return name_; }
   const std::forward_list<std::reference_wrapper<TruffleBehavior>>& behaviors()
       const& {
     return behaviors_;
   }
-
   const std::forward_list<std::reference_wrapper<ButtonBase>>& buttons()
       const& {
     return buttons_;
@@ -64,7 +48,23 @@ class Scene : NonCopyable {
   std::forward_list<std::reference_wrapper<ButtonBase>> buttons_;
 };
 
-using ScenePtr = Scene::ScenePtr;
+void Scene::initScene() const& {
+  for (const auto& cb : behaviors_) {
+    cb.get().start();
+  }
+}
+
+void Scene::setBehavior(TruffleBehavior& b) {
+  log(LogLevel::INFO,
+      absl::StrFormat("behavior %s registered to scene %s", b.name(), name_));
+  behaviors_.push_front(b);
+}
+
+void Scene::setButton(ButtonBase& b) {
+  log(LogLevel::INFO,
+      absl::StrFormat("button %s registered to scene %s", b.name(), name_));
+  buttons_.push_front(b);
+}
 
 template <class SceneState>
 class SceneManager : NonCopyable {
@@ -78,11 +78,9 @@ class SceneManager : NonCopyable {
    */
   Scene& addScene(SceneState state, std::string scene_name) {
     if (state_manager_.initialized()) {
-      state_manager_.bindStatefulObject(state,
-                                        std::make_shared<Scene>(scene_name));
+      state_manager_.bindStatefulObject(state, scene_name);
     } else {
-      state_manager_.setInitStatefulObject(state,
-                                           std::make_shared<Scene>(scene_name));
+      state_manager_.setInitStatefulObject(state, scene_name);
     }
     return state_manager_.statefulObject(state);
   }
@@ -106,21 +104,34 @@ class SceneManager : NonCopyable {
 
   /**
    * シーン遷移イベントを発行する
-   * @param to 遷移先
+   *
+   * @param dst_scene 遷移先
    * @return
    */
-  bool sendSceneTransitionSignal(SceneState to) {
+  bool sendSceneTransitionSignal(SceneState dst_scene) {
     // SDL_PushEventはスレッドセーフだがstd::queueはスレッドセーフではないので、
     // シーン遷移キューとイベントキューの不整合を防ぐためにロックを獲る
     std::unique_lock<std::mutex> lock(mux_);
-    pending_scene_transition_.push(to);
+    pending_scene_transition_.push(dst_scene);
     SDL_Event transition_event;
     transition_event.type = SDL_USEREVENT;
     transition_event.user.type = EV_SCENE_CHANGED;
-    SDL_PushEvent(&transition_event);
+    if (SDL_PushEvent(&transition_event) < 0) {
+      log(LogLevel::ERROR, "Failed to push event to event diapatcher");
+      pending_scene_transition_.pop();
+    }
   }
 
-  bool transitScene() {
+  /**
+   * 実際にシーン遷移を行う。pending
+   * queueに遷移先のイベントが格納されている必要がある。
+   */
+  void transitScene() {
+    if (pending_scene_transition_.empty()) {
+      log(LogLevel::WARN,
+          "Can't invoke scene transition with empty pending queue");
+      return;
+    }
     std::unique_lock<std::mutex> lock(mux_);
     auto to = pending_scene_transition_.front();
     pending_scene_transition_.pop();
@@ -129,12 +140,14 @@ class SceneManager : NonCopyable {
 
   /**
    * 現在アクティブなシーンを返す
+   *
    * @return
    */
   const Scene& currentScene() { return state_manager_.activeStateObject(); }
 
   /**
    * 現在のシーンの状態を返す
+   *
    * @return
    */
   SceneState currentSceneState() { return state_manager_.activeState(); }

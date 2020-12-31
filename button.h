@@ -31,9 +31,9 @@ enum class ButtonState {
  */
 class ButtonBase : public Renderable {
  public:
-  ButtonBase(Renderer& r) : Renderable(r) {}
+  ButtonBase(const Renderer& r) : Renderable(r) {}
 
-  virtual const std::string& buttonName() = 0;
+  virtual const std::string& name() const& = 0;
 
   // Renderable
   virtual void render() override {}
@@ -69,12 +69,23 @@ class ButtonBase : public Renderable {
  */
 class ImageButton : public ButtonBase {
  public:
-  ImageButton(Renderer& r, std::string name, int x, int y,
+  /**
+   * 画像テクスチャボタンのコンストラクタ
+   *
+   * @param r レンダラ
+   * @param name 名前
+   * @param x x座標
+   * @param y y座標
+   * @param path_normal 初期状態のテクスチャのパス
+   * @param path_hovered ホバー状態のテクスチャのパス
+   * @param path_pressed 押下時のテクスチャのパス
+   */
+  ImageButton(const Renderer& r, std::string name, int x, int y,
               std::string path_normal, std::string path_hovered = "",
               std::string path_pressed = "");
 
   // ButtonBase
-  const std::string& buttonName() override { return name_; }
+  const std::string& name() const& override { return name_; }
 
   // Renderable
   void render() override final;
@@ -99,30 +110,26 @@ class ImageButton : public ButtonBase {
   bool isMouseLeftButtonReleased(SDL_Event& ev);
 
  private:
-  std::string name_;
+  const std::string name_;
 
   const int x_;
   const int y_;
 };
 
-ImageButton::ImageButton(Renderer& r, std::string name, int x, int y,
+ImageButton::ImageButton(const Renderer& r, std::string name, int x, int y,
                          std::string path_normal, std::string path_hovered,
                          std::string path_pressed)
     : ButtonBase(r), x_(x), y_(y) {
-  auto texture_factory = ImageTextureFactory(r);
-  state_manager.setInitStatefulObject(
-      ButtonState::Normal,
-      texture_factory.create(path_normal, name + "_normal", x_, y_));
+  state_manager.setInitStatefulObject(ButtonState::Normal, renderer_,
+                                      path_normal, name + "_normal", x_, y_);
   // Bind object
   if (!path_hovered.empty()) {
-    state_manager.bindStatefulObject(
-        ButtonState::Hovered,
-        texture_factory.create(path_hovered, name + "_hovered", x_, y_));
+    state_manager.bindStatefulObject(ButtonState::Hovered, renderer_,
+                                     path_hovered, name + "_hovered", x_, y_);
   }
   if (!path_pressed.empty()) {
-    state_manager.bindStatefulObject(
-        ButtonState::Pressed,
-        texture_factory.create(path_pressed, name + "_pressed", x_, y_));
+    state_manager.bindStatefulObject(ButtonState::Pressed, renderer_,
+                                     path_pressed, name + "_pressed", x_, y_);
   }
   // define state transition
   state_manager.setStateTransition(ButtonState::Hovered, ButtonState::Pressed);
@@ -134,7 +141,8 @@ ImageButton::ImageButton(Renderer& r, std::string name, int x, int y,
 void ImageButton::render() {
   auto& active_state = state_manager.activeStateObject();
   SDL_Rect render_rect = {x_, y_, active_state.width(), active_state.height()};
-  SDL_RenderCopy(renderer_.entity(), active_state.entity(),
+  SDL_RenderCopy(const_cast<SDL_Renderer*>(renderer_.entity()),
+                 const_cast<SDL_Texture*>(active_state.entity()),
                  nullptr /* TODO: introduce clip settings */, &render_rect);
 }
 

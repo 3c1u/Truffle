@@ -7,7 +7,9 @@
 
 namespace Truffle {
 
-class EventMessageBus {};
+class EventMessageBus {
+ public:
+};
 
 }  // namespace Truffle
 #endif  // TRUFFLE_BUS_H

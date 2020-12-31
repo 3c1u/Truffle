@@ -30,17 +30,22 @@ class TruffleBehavior {
    */
   virtual void update(SDL_Event&){};
 
-  const std::string& behaviorName() { return name_; }
-
-  const std::forward_list<std::reference_wrapper<Renderable>>&
-  targetRenderables() {
-    return renderables;
+  /**
+   * 描画可能オブジェクトを追加する
+   * @param renderable
+   */
+  void addRenderable(Renderable& renderable) {
+    renderables_.push_front(renderable);
   }
 
- protected:
-  std::forward_list<std::reference_wrapper<Renderable>> renderables;
+  const std::string& name() const& { return name_; }
+  const std::forward_list<std::reference_wrapper<Renderable>>&
+  targetRenderables() const& {
+    return renderables_;
+  }
 
  private:
+  std::forward_list<std::reference_wrapper<Renderable>> renderables_;
   std::string name_;
 };
 

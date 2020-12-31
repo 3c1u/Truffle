@@ -13,58 +13,39 @@
 
 #include "exception.h"
 #include "non_copyable.h"
+#include "singleton.h"
 
 namespace Truffle {
 
-// TODO(shikugawa): It should be singleton class
-class Window : NonCopyable {
+class Window : public ConstSingleton<Window>, NonCopyable {
  public:
-  ~Window() {
-    if (initialized_) {
-      SDL_DestroyWindow(window_entity_);
-    }
-  }
-  void startWindow() {
-    if (initialized_) {
-      return;
-    }
-
-    window_entity_ = SDL_CreateWindow(name_.c_str(), SDL_WINDOWPOS_UNDEFINED,
-                                      SDL_WINDOWPOS_UNDEFINED, width_, height_,
-                                      SDL_WINDOW_SHOWN);
-    if (!window_entity_) {
-      throw TruffleException(
-          absl::StrFormat("Failed to create %s window", name_));
-    }
-
-    initialized_ = true;
-  }
-  void setWindowName(std::string&& name) {
-    if (!initialized_) {
-      name_ = name;
-    }
-  }
-  void setWindowSize(int width, int height) {
-    if (!initialized_) {
-      width_ = width;
-      height_ = height;
-    }
-  }
-  bool initialized() { return initialized_; }
-
-  std::string& name() { return name_; }
-  SDL_Window const* windowEntity() { return window_entity_; }
+  const std::string& name() const& { return name_; }
+  SDL_Window const* entity() const& { return window_entity_; }
 
  private:
-  SDL_Window* window_entity_;
+  friend class ConstSingleton<Window>;
 
-  bool initialized_{false};
-  std::string name_;
-  int width_ = 640;
-  int height_ = 480;
+  Window(std::string name, int width, int height);
+  ~Window();
+
+  SDL_Window* window_entity_;
+  const std::string name_;
+  const int width_;
+  const int height_;
 };
 
-using WindowPtr = std::shared_ptr<Window>;
+Window::Window(std::string name, int width, int height)
+    : name_(name), width_(width), height_(height) {
+  window_entity_ = SDL_CreateWindow(name_.c_str(), SDL_WINDOWPOS_UNDEFINED,
+                                    SDL_WINDOWPOS_UNDEFINED, width_, height_,
+                                    SDL_WINDOW_SHOWN);
+  if (!window_entity_) {
+    throw TruffleException(
+        absl::StrFormat("Failed to create %s window", name_));
+  }
+}
+
+Window::~Window() { SDL_DestroyWindow(window_entity_); }
 
 }  // namespace Truffle
 

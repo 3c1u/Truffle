@@ -7,55 +7,46 @@
 
 #include <SDL2/SDL.h>
 
+#include "color.h"
 #include "window.h"
 
 namespace Truffle {
 
-class Renderer : NonCopyable {
+class Renderer : public MutableSingleton<Renderer>, NonCopyable {
  public:
-  ~Renderer() { SDL_DestroyRenderer(renderer_entity_); }
+  void setDrawColor(const Color& color);
+  void setDrawColor(Color&& color);
 
-  void init(Window& window) {
-    if (initialized_) {
-      return;
-    }
-
-    if (!window.initialized()) {
-      throw TruffleException(
-          absl::StrFormat("Window %s doesn't initialized.", window.name()));
-    }
-    renderer_entity_ = SDL_CreateRenderer(
-        const_cast<SDL_Window*>(window.windowEntity()), -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer_entity_) {
-      throw TruffleException(absl::StrFormat(
-          "Failed to create renderer, bound to window %s", window.name()));
-    }
-
-    initialized_ = true;
-  }
-
-  void setDrawColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    if (!initialized_) {
-      return;
-    }
-    SDL_SetRenderDrawColor(renderer_entity_, r, g, b, a);
-  }
-
-  void render() {
-    if (!initialized_) {
-      return;
-    }
-    SDL_RenderClear(renderer_entity_);
-    SDL_RenderPresent(renderer_entity_);
-  }
-
-  SDL_Renderer* entity() { return renderer_entity_; }
+  SDL_Renderer const* entity() const { return renderer_entity_; }
 
  private:
-  bool initialized_{false};
+  friend class MutableSingleton<Renderer>;
+
+  Renderer(const Window& window);
+  ~Renderer();
+
   SDL_Renderer* renderer_entity_;
 };
+
+Renderer::Renderer(const Window& window) {
+  renderer_entity_ =
+      SDL_CreateRenderer(const_cast<SDL_Window*>(window.entity()), -1,
+                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (!renderer_entity_) {
+    throw TruffleException(absl::StrFormat(
+        "Failed to create renderer, bound to window %s", window.name()));
+  }
+}
+
+Renderer::~Renderer() { SDL_DestroyRenderer(renderer_entity_); }
+
+void Renderer::setDrawColor(const Color& c) {
+  SDL_SetRenderDrawColor(renderer_entity_, c.r, c.g, c.b, c.a);
+}
+
+void Renderer::setDrawColor(Color&& c) {
+  SDL_SetRenderDrawColor(renderer_entity_, c.r, c.g, c.b, c.a);
+}
 
 }  // namespace Truffle
 #endif  // Truffle_RENDERER_H

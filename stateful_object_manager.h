@@ -40,14 +40,15 @@ class StatefulObjectManager {
    * @param init 初期状態を示す状態
    * @param obj 初期状態を示すオブジェクト
    */
-  void setInitStatefulObject(State init, std::shared_ptr<StatefulObject> obj) {
+  template <typename... Args>
+  void setInitStatefulObject(State init, Args&&... args) {
     if (init_) {
       throw TruffleException("init stateful object can't be called twice");
     }
     if (binded_stateful_object_.find(init) != binded_stateful_object_.end()) {
       return;
     }
-    bindStatefulObject(init, obj);
+    bindStatefulObject(init, std::forward<Args>(args)...);
     current_state_ = init;
     prev_state_object_ = binded_stateful_object_.at(init);
     init_ = true;
@@ -59,8 +60,9 @@ class StatefulObjectManager {
    * @param state 紐付けたい状態
    * @param obj 紐付けたいオブジェクト
    */
-  void bindStatefulObject(State state, std::shared_ptr<StatefulObject> obj) {
-    binded_stateful_object_[state] = obj;
+  template <typename... Args>
+  void bindStatefulObject(State state, Args&&... args) {
+    binded_stateful_object_[state] = std::make_shared<StatefulObject>(args...);
   }
 
   /**
@@ -171,11 +173,12 @@ class StatefulObjectManager<StatelessObject, NullState> {
    * @param init 初期状態を示す状態
    * @param obj 初期状態を示すオブジェクト
    */
-  void setInitStatefulObject(std::shared_ptr<StatelessObject> obj) {
+  template <typename... Args>
+  void setInitStatefulObject(Args... args) {
     if (init_) {
       throw TruffleException("init stateful object can't be called twice");
     }
-    active_object_ = obj;
+    active_object_ = std::make_shared<StatelessObject>(args...);
     init_ = true;
   }
 

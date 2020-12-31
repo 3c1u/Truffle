@@ -11,7 +11,7 @@ namespace Truffle {
 
 class Renderable {
  public:
-  Renderable(Renderer& r) : renderer_(r) {}
+  Renderable(const Renderer& r) : renderer_(r) {}
 
   /**
    * メンバに対する描画処理を定義する
@@ -29,7 +29,7 @@ class Renderable {
   void disableRender() { do_render_ = false; }
 
  protected:
-  Renderer& renderer_;
+  const Renderer& renderer_;
   bool do_render_ = true;
 };
 

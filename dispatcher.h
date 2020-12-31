@@ -17,12 +17,6 @@
 
 namespace Truffle {
 
-enum class SceneState {
-  Init,
-  Clicked,
-  Limit,
-};
-
 template <class SceneState>
 class Dispatcher : NonCopyable {
  public:
@@ -53,8 +47,9 @@ class Dispatcher : NonCopyable {
         cb.get()._onMouseUnhovered();
       }
 
-      SDL_SetRenderDrawColor(renderer_.entity(), 0xff, 0xff, 0xff, 0xff);
-      SDL_RenderClear(renderer_.entity());
+      SDL_SetRenderDrawColor(const_cast<SDL_Renderer*>(renderer_.entity()),
+                             0xff, 0xff, 0xff, 0xff);
+      SDL_RenderClear(const_cast<SDL_Renderer*>(renderer_.entity()));
 
       // Render behaviors
       for (auto& b : scene_manager_.currentScene().behaviors()) {
@@ -67,7 +62,7 @@ class Dispatcher : NonCopyable {
         b.get().render();
       }
 
-      SDL_RenderPresent(renderer_.entity());
+      SDL_RenderPresent(const_cast<SDL_Renderer*>(renderer_.entity()));
     }
   }
 
