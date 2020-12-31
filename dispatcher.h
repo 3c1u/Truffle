@@ -42,7 +42,7 @@ class Dispatcher : NonCopyable {
       }
 
       // Handle button callbacks
-      for (const auto& cb : scene_manager_.currentScene().buttons()) {
+      for (const auto& [_, cb] : scene_manager_.currentScene().buttons()) {
         cb.get()._onMouseHovered();
         cb.get()._onMouseUnhovered();
       }
@@ -52,13 +52,13 @@ class Dispatcher : NonCopyable {
       SDL_RenderClear(const_cast<SDL_Renderer*>(renderer_.entity()));
 
       // Render behaviors
-      for (auto& b : scene_manager_.currentScene().behaviors()) {
+      for (auto& [_, b] : scene_manager_.currentScene().behaviors()) {
         for (auto& r : b.get().targetRenderables()) {
           r.get().render();
         }
       }
       // Render buttons
-      for (auto& b : scene_manager_.currentScene().buttons()) {
+      for (auto& [_, b] : scene_manager_.currentScene().buttons()) {
         b.get().render();
       }
 
@@ -78,11 +78,11 @@ class Dispatcher : NonCopyable {
         scene_manager_.transitScene();
       }
       // Handle behaviors update
-      for (auto& b : scene_manager_.currentScene().behaviors()) {
+      for (auto& [_, b] : scene_manager_.currentScene().behaviors()) {
         b.get().update(e);
       }
       // Handle button events related with hardware interruption
-      for (auto& b : scene_manager_.currentScene().buttons()) {
+      for (auto& [_, b] : scene_manager_.currentScene().buttons()) {
         b.get()._onButtonPressed(e);
         b.get()._onButtonReleased(e);
       }

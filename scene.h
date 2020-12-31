@@ -32,38 +32,48 @@ class Scene : NonCopyable {
   void setButton(ButtonBase& b);
 
   const std::string& name() const& { return name_; }
-  const std::forward_list<std::reference_wrapper<TruffleBehavior>>& behaviors()
-      const& {
+  const absl::flat_hash_map<std::string,
+                            std::reference_wrapper<TruffleBehavior>>&
+  behaviors() const& {
     return behaviors_;
   }
-  const std::forward_list<std::reference_wrapper<ButtonBase>>& buttons()
-      const& {
+  const absl::flat_hash_map<std::string, std::reference_wrapper<ButtonBase>>&
+  buttons() const& {
     return buttons_;
   }
 
  private:
   std::string name_;
 
-  std::forward_list<std::reference_wrapper<TruffleBehavior>> behaviors_;
-  std::forward_list<std::reference_wrapper<ButtonBase>> buttons_;
+  absl::flat_hash_map<std::string, std::reference_wrapper<TruffleBehavior>>
+      behaviors_;
+  absl::flat_hash_map<std::string, std::reference_wrapper<ButtonBase>> buttons_;
 };
 
 void Scene::initScene() const& {
-  for (const auto& cb : behaviors_) {
+  for (const auto& [_, cb] : behaviors_) {
     cb.get().start();
   }
 }
 
 void Scene::setBehavior(TruffleBehavior& b) {
+  if (behaviors_.find(b.name()) != behaviors_.end()) {
+    throw TruffleException(
+        absl::StrFormat("behavior %s had already registered", b.name()));
+  }
   log(LogLevel::INFO,
       absl::StrFormat("behavior %s registered to scene %s", b.name(), name_));
-  behaviors_.push_front(b);
+  behaviors_.emplace(b.name(), b);
 }
 
 void Scene::setButton(ButtonBase& b) {
+  if (buttons_.find(b.name()) != buttons_.end()) {
+    throw TruffleException(
+        absl::StrFormat("button %s had already registered", b.name()));
+  }
   log(LogLevel::INFO,
       absl::StrFormat("button %s registered to scene %s", b.name(), name_));
-  buttons_.push_front(b);
+  buttons_.emplace(b.name(), b);
 }
 
 template <class SceneState>
@@ -106,9 +116,8 @@ class SceneManager : NonCopyable {
    * シーン遷移イベントを発行する
    *
    * @param dst_scene 遷移先
-   * @return
    */
-  bool sendSceneTransitionSignal(SceneState dst_scene) {
+  void sendSceneTransitionSignal(SceneState dst_scene) {
     // SDL_PushEventはスレッドセーフだがstd::queueはスレッドセーフではないので、
     // シーン遷移キューとイベントキューの不整合を防ぐためにロックを獲る
     std::unique_lock<std::mutex> lock(mux_);

@@ -97,7 +97,7 @@ class Illustya final : public TruffleBehavior {
 
 class TimeBoard : public TruffleBehavior {
  public:
-  static constexpr std::string_view name = "genji_behavior";
+  static constexpr std::string_view name = "timeboard_behavior";
 
   explicit TimeBoard(const Renderer& r, const Font& f)
       : TruffleBehavior(name.data()), texture_(r, f, name.data(), 0, 0) {
