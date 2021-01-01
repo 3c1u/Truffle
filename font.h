@@ -24,7 +24,7 @@ class Font : NonCopyable {
 
   ~Font() { TTF_CloseFont(font_); }
 
-  TTF_Font const* entity() const& { return font_; }
+  [[nodiscard]] TTF_Font const* entity() const& { return font_; }
 
  private:
   TTF_Font* font_;

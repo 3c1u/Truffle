@@ -7,8 +7,9 @@
 
 #include "button.h"
 #include "dispatcher.h"
+#include "message.h"
 #include "renderer.h"
-#include "scene.h"
+#include "scene_manager.h"
 #include "texture.h"
 #include "window.h"
 
@@ -18,6 +19,7 @@ using Truffle::Dispatcher;
 using Truffle::Font;
 using Truffle::ImageButton;
 using Truffle::ImageTexture;
+using Truffle::Message;
 using Truffle::NullState;
 using Truffle::Renderer;
 using Truffle::Scene;
@@ -28,12 +30,12 @@ using Truffle::TextTextureMode;
 using Truffle::TruffleBehavior;
 using Truffle::Window;
 
-class Genji final : public TruffleBehavior {
+ class Genji final : public TruffleBehavior {
  public:
   static constexpr std::string_view name = "genji_behavior";
 
-  explicit Genji(Renderer& r)
-      : TruffleBehavior(name.data()),
+  explicit Genji(Scene& parent_scene, const Renderer& r)
+      : TruffleBehavior(parent_scene, name.data()),
         texture_(r, "../testdata/genji.jpg", name.data(), 0, 0) {
     addRenderable(texture_);
   }
@@ -50,13 +52,13 @@ class Genji final : public TruffleBehavior {
   ImageTexture texture_;
 };
 
-enum class IllustyaState { Normal, Hovered };
+ enum class IllustyaState { Normal, Hovered };
 
-class Illustya final : public TruffleBehavior {
+ class Illustya final : public TruffleBehavior {
  public:
   static constexpr std::string_view name = "illustya_behavior";
 
-  explicit Illustya(const Renderer& r) : TruffleBehavior(name.data()) {
+  explicit Illustya(Scene& parent_scene, const Renderer& r) : TruffleBehavior(parent_scene, name.data()) {
     // Define state machine
     state_manager_.setInitStatefulObject(
         IllustyaState::Normal, r, "../testdata/home.png", name.data(), 0, 0);
@@ -95,23 +97,33 @@ class Illustya final : public TruffleBehavior {
   StatefulObjectManager<ImageTexture, IllustyaState> state_manager_;
 };
 
-class TimeBoard : public TruffleBehavior {
+class Counter : public TruffleBehavior {
  public:
-  static constexpr std::string_view name = "timeboard_behavior";
+  static constexpr std::string_view name = "counter_behavior";
 
-  explicit TimeBoard(const Renderer& r, const Font& f)
-      : TruffleBehavior(name.data()), texture_(r, f, name.data(), 0, 0) {
+  explicit Counter(Scene& scene, const Renderer& r, const Font& f)
+      : TruffleBehavior(scene, name.data()), texture_(r, f, name.data(), 0, 0) {
     addRenderable(texture_);
   }
 
-  void start() override {
+  void start() override final {
     auto color = Color{0x00, 0x00, 0x00, 0xff};
-    texture_.loadBlendTexture("0:00", color);
+    texture_.loadBlendTexture(current_text_, color);
   }
 
-  void update(SDL_Event& ev) override {}
+  void update(SDL_Event& ev) override final {
+    auto message = recvMessage();
+    if (message.has_value()) {
+      auto current_num = std::stoi(current_text_);
+      ++current_num;
+      current_text_ = std::to_string(current_num);
+      auto color = Color{0x00, 0x00, 0x00, 0xff};
+      texture_.loadBlendTexture(current_text_, color);
+    }
+  }
 
  private:
+  std::string current_text_ = "0";
   TextTexture texture_;
 };
 
@@ -122,9 +134,12 @@ enum class SceneState {
 
 class ImageButton2 : public ImageButton {
  public:
-  ImageButton2(SceneManager<SceneState>& manager, Renderer& r, std::string name,
-               int x, int y, std::string path1, std::string path2)
-      : ImageButton(r, name, x, y, path1, path2), manager_(manager) {}
+  static constexpr std::string_view name = "image_button2";
+
+  ImageButton2(Scene& parent_scene, SceneManager<SceneState>& manager,
+               Renderer& r, int x, int y, std::string path1, std::string path2)
+      : ImageButton(parent_scene, r, name.data(), x, y, path1, path2),
+        manager_(manager) {}
 
   void onMouseHovered() override final {
     state_manager.stateTransition(ButtonState::Hovered);
@@ -132,8 +147,7 @@ class ImageButton2 : public ImageButton {
   }
 
   void onButtonPressed() override final {
-    assert(manager_.currentSceneState() == SceneState::Init);
-    manager_.sendSceneTransitionSignal(SceneState::Clicked);
+    sendMessage("counter_behavior", Message{"message"});
   }
 
  private:
@@ -165,15 +179,18 @@ int main() {
   SceneManager<SceneState> manager;
   // create scene
   auto& s1 = manager.addScene(SceneState::Init, "root_scene");
-  TimeBoard tb(renderer, f);
-  s1.setBehavior(tb);
-  Illustya it(renderer);
-  s1.setBehavior(it);
-  Genji dot(renderer);
-  s1.setBehavior(dot);
-  ImageButton2 ib(manager, renderer, "illustya", 150, 150,
-                  "../testdata/home.png", "../testdata/top.png");
-  s1.setButton(ib);
+  // Add counter
+  Counter tb(s1, renderer, f);
+  // Add button
+  ImageButton2 ib(s1, manager, renderer, 150, 150, "../testdata/home.png",
+                  "../testdata/top.png");
+
+  //  Illustya it(renderer);
+  //  s1.setBehavior(it);
+  //  Genji dot(renderer);
+  //  s1.setBehavior(dot);
+
+  //  s1.setButton(ib);
   //
   //  auto& s2 = manager.addScene(SceneState::Clicked, "clicked_scene");
   //  TimeBoard tb3(renderer, f);

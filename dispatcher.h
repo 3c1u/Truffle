@@ -12,7 +12,7 @@
 #include <forward_list>
 #include <functional>
 
-#include "scene.h"
+#include "scene_manager.h"
 #include "texture.h"
 
 namespace Truffle {
@@ -29,7 +29,7 @@ class Dispatcher : NonCopyable {
              Callback dispatcher_exit_callback)
       : scene_manager_(m),
         renderer_(r),
-        exit_handler_(dispatcher_exit_callback) {}
+        exit_handler_(std::move(dispatcher_exit_callback)) {}
 
   void run() {
     // Call startup functions on root scene
@@ -94,6 +94,7 @@ class Dispatcher : NonCopyable {
   SceneManager<SceneState>& scene_manager_;
   Renderer& renderer_;
 };
+
 }  // namespace Truffle
 
 #endif  // Truffle_DISPATCHER_H

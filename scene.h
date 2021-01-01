@@ -7,30 +7,145 @@
 
 #include <absl/container/flat_hash_map.h>
 
+#include <forward_list>
 #include <memory>
-#include <mutex>
 #include <queue>
-#include <string>
 
-#include "behavior.h"
 #include "bus.h"
-#include "button.h"
-#include "logger.h"
-#include "non_copyable.h"
+#include "message.h"
 #include "renderable.h"
 #include "stateful_object_manager.h"
+#include "texture.h"
 
 namespace Truffle {
 
+class Scene;
+
+class ButtonBase : public Renderable {
+ public:
+  ButtonBase(Scene& parent_scene, const Renderer& renderer, std::string name);
+
+  // Renderable
+  virtual void render() override {}
+
+  /**
+   * ボタンが押された時のコールバック
+   */
+  virtual void onButtonPressed() = 0;
+
+  /**
+   * ボタンが離された時のコールバック
+   */
+  virtual void onButtonReleased() = 0;
+
+  /**
+   * ボタンがホバーされた時のコールバック
+   */
+  virtual void onMouseHovered() = 0;
+
+  /**
+   * ボタンがアンホバーされた時のコールバック
+   */
+  virtual void onMouseUnhovered() = 0;
+
+  /**
+   * 同一シーン内のビヘイビアにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
+   * 失敗した場合はfalseを返す。
+   * @param dst_behavior
+   * @param msg
+   * @return
+   */
+  bool sendMessage(std::string dst_behavior, const Message& msg);
+  bool sendMessage(std::string dst_behavior, Message&& msg);
+
+  virtual void _onButtonPressed(SDL_Event& ev) = 0;
+  virtual void _onButtonReleased(SDL_Event& ev) = 0;
+  virtual void _onMouseHovered() = 0;
+  virtual void _onMouseUnhovered() = 0;
+
+  [[nodiscard]] const std::string& name() const& { return name_; }
+
+ private:
+  const std::string name_;
+  Scene& parent_scene_;
+};
+
+class TruffleBehavior {
+ public:
+  /**
+   * ビヘイビアのコンストラクタ
+   * @param parent_scene ビヘイビアが所属するシーンの参照
+   * @param name ビヘイビアの名前。名前に重複があると例外が発生するので注意。
+   */
+  TruffleBehavior(Scene& parent_scene, std::string name);
+
+  virtual ~TruffleBehavior() = default;
+
+  /**
+   * シーンの開始時に一度だけ実行されるコールバック
+   */
+  virtual void start(){};
+
+  /**
+   * 毎フレーム毎に1回呼ばれるコールバック
+   */
+  virtual void update(SDL_Event&){};
+
+  /**
+   * 描画可能オブジェクトを追加する
+   * @param renderable
+   */
+  void addRenderable(Renderable& renderable) {
+    renderables_.push_front(renderable);
+  }
+
+  /**
+   * Sceneで発行されたメッセージキューのポインタを保持する。
+   * @param message_queue_ptr
+   */
+  void setMessageQueue(std::shared_ptr<std::queue<Message>> message_queue_ptr) {
+    message_queue_ = std::move(message_queue_ptr);
+  }
+
+  /**
+   * メッセージを1件受け取る
+   * @return
+   */
+  std::optional<Message> recvMessage();
+
+  [[nodiscard]] const std::string& name() const& { return name_; }
+  [[nodiscard]] const std::forward_list<std::reference_wrapper<Renderable>>&
+  targetRenderables() const& {
+    return renderables_;
+  }
+
+ private:
+  Scene& parent_scene_;
+  std::forward_list<std::reference_wrapper<Renderable>> renderables_;
+  std::shared_ptr<std::queue<Message>> message_queue_;
+  std::string name_;
+};
+
 class Scene : NonCopyable {
  public:
-  using ScenePtr = std::shared_ptr<Scene>;
-
   explicit Scene(std::string scene_name);
 
+  /**
+   * シーンの初期化を行う。
+   */
   void initScene() const&;
-  void setBehavior(TruffleBehavior& b);
-  void setButton(ButtonBase& b);
+
+  /**
+   * 同一シーン内のビヘイビアにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
+   * @tparam T
+   * @param dst_behavior
+   * @param message
+   * @return
+   */
+  template <class T>
+  bool sendMessage(std::string dst_behavior, T&& message) {
+    return bus_.sendMessage(dst_behavior, std::forward<T&&>(message));
+  }
 
   [[nodiscard]] const std::string& name() const& { return name_; }
   [[nodiscard]] const absl::flat_hash_map<
@@ -45,6 +160,12 @@ class Scene : NonCopyable {
   }
 
  private:
+  friend class TruffleBehavior;
+  friend class ButtonBase;
+
+  void setButton(ButtonBase& b);
+  void setBehavior(TruffleBehavior& b);
+
   std::string name_;
 
   EventMessageBus& bus_;
@@ -53,8 +174,36 @@ class Scene : NonCopyable {
   absl::flat_hash_map<std::string, std::reference_wrapper<ButtonBase>> buttons_;
 };
 
+TruffleBehavior::TruffleBehavior(Scene& parent_scene, std::string name)
+    : parent_scene_(parent_scene), name_(name) {
+  parent_scene_.setBehavior(*this);
+}
+
+std::optional<Message> TruffleBehavior::recvMessage() {
+  if (message_queue_->empty()) {
+    return std::nullopt;
+  }
+  auto message = message_queue_->front();
+  message_queue_->pop();
+  return message;
+}
+
+ButtonBase::ButtonBase(Scene& parent_scene, const Renderer& renderer,
+                       std::string name)
+    : Renderable(renderer), name_(std::move(name)), parent_scene_(parent_scene) {
+  parent_scene_.setButton(*this);
+}
+
+bool ButtonBase::sendMessage(std::string dst_behavior, const Message& msg) {
+  parent_scene_.sendMessage(std::move(dst_behavior), std::forward<const Message&>(msg));
+}
+
+bool ButtonBase::sendMessage(std::string dst_behavior, Message&& msg) {
+  parent_scene_.sendMessage(std::move(dst_behavior), std::forward<Message&&>(msg));
+}
+
 Scene::Scene(std::string scene_name)
-    : name_(scene_name), bus_(EventMessageBus::get()) {}
+    : name_(std::move(scene_name)), bus_(EventMessageBus::get()) {}
 
 void Scene::initScene() const& {
   for (const auto& [_, cb] : behaviors_) {
@@ -84,97 +233,6 @@ void Scene::setButton(ButtonBase& b) {
   buttons_.emplace(b.name(), b);
 }
 
-template <class SceneState>
-class SceneManager : NonCopyable {
- public:
-  /**
-   * シーンの状態を登録する。生成されたシーンの参照を返す。
-   *
-   * @param state
-   * @param scene_name
-   * @return
-   */
-  Scene& addScene(SceneState state, std::string scene_name) {
-    if (state_manager_.initialized()) {
-      state_manager_.bindStatefulObject(state, scene_name);
-    } else {
-      state_manager_.setInitStatefulObject(state, scene_name);
-    }
-    return state_manager_.statefulObject(state);
-  }
-
-  /**
-   * シーンの遷移を定義する。与えられたシーンが未作成であれば例外を返す。
-   *
-   * @param from
-   * @param to
-   */
-  void setSceneTransition(SceneState from, SceneState to) {
-    try {
-      state_manager_.statefulObject(from);
-      state_manager_.statefulObject(to);
-    } catch (TruffleException&) {
-      throw TruffleException("Provided scene is not registered");
-    }
-    state_manager_.setStateTransition(from, to);
-    state_manager_.setStateTransition(to, from);
-  }
-
-  /**
-   * シーン遷移イベントを発行する
-   *
-   * @param dst_scene 遷移先
-   */
-  void sendSceneTransitionSignal(SceneState dst_scene) {
-    // SDL_PushEventはスレッドセーフだがstd::queueはスレッドセーフではないので、
-    // シーン遷移キューとイベントキューの不整合を防ぐためにロックを獲る
-    std::unique_lock<std::mutex> lock(mux_);
-    pending_scene_transition_.push(dst_scene);
-    SDL_Event transition_event;
-    transition_event.type = SDL_USEREVENT;
-    transition_event.user.type = EV_SCENE_CHANGED;
-    if (SDL_PushEvent(&transition_event) < 0) {
-      log(LogLevel::ERROR, "Failed to push event to event diapatcher");
-      pending_scene_transition_.pop();
-    }
-  }
-
-  /**
-   * 実際にシーン遷移を行う。pending
-   * queueに遷移先のイベントが格納されている必要がある。
-   */
-  void transitScene() {
-    if (pending_scene_transition_.empty()) {
-      log(LogLevel::WARN,
-          "Can't invoke scene transition with empty pending queue");
-      return;
-    }
-    std::unique_lock<std::mutex> lock(mux_);
-    auto to = pending_scene_transition_.front();
-    pending_scene_transition_.pop();
-    state_manager_.stateTransition(to);
-  }
-
-  /**
-   * 現在アクティブなシーンを返す
-   *
-   * @return
-   */
-  const Scene& currentScene() { return state_manager_.activeStateObject(); }
-
-  /**
-   * 現在のシーンの状態を返す
-   *
-   * @return
-   */
-  SceneState currentSceneState() { return state_manager_.activeState(); }
-
- private:
-  std::queue<SceneState> pending_scene_transition_;
-  StatefulObjectManager<Scene, SceneState> state_manager_;
-  std::mutex mux_;
-};
-
 }  // namespace Truffle
 
-#endif  // Truffle_SCENE_H
+#endif  // Truffle_BEHAVIOR_H

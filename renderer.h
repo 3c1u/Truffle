@@ -17,12 +17,12 @@ class Renderer : public MutableSingleton<Renderer>, NonCopyable {
   void setDrawColor(const Color& color);
   void setDrawColor(Color&& color);
 
-  SDL_Renderer const* entity() const { return renderer_entity_; }
+  [[nodiscard]] SDL_Renderer const* entity() const& { return renderer_entity_; }
 
  private:
   friend class MutableSingleton<Renderer>;
 
-  Renderer(const Window& window);
+  explicit Renderer(const Window& window);
   ~Renderer();
 
   SDL_Renderer* renderer_entity_;

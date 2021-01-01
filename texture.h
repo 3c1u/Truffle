@@ -27,13 +27,13 @@ class ImageTexture : public Renderable {
                int x, int y);
   ~ImageTexture() { SDL_DestroyTexture(texture_); }
 
-  int width() { return width_; }
-  int height() { return height_; }
-  SDL_Texture const* entity() { return texture_; }
-  const std::string& name() { return name_; }
+  [[nodiscard]] int width() const& { return width_; }
+  [[nodiscard]] int height() const& { return height_; }
+  [[nodiscard]] SDL_Texture const* entity() const& { return texture_; }
+  [[nodiscard]] const std::string& name() const& { return name_; }
 
   // Renderable
-  void render() override final;
+  void render() final;
 
   int x, y;
 
@@ -43,8 +43,6 @@ class ImageTexture : public Renderable {
   int height_;
   const std::string name_;
 };
-
-using ImageTexturePtr = std::shared_ptr<ImageTexture>;
 
 ImageTexture::ImageTexture(const Renderer& renderer, std::string path,
                            std::string name, int x, int y)
@@ -87,13 +85,13 @@ class TextTexture : public Renderable {
   void loadBlendTexture(std::string text, Color& fg);
   void loadShadedTexture(std::string text, Color& fg, Color& bg);
 
-  int width() const& { return width_; }
-  int height() const& { return height_; }
-  SDL_Texture const* entity() const& { return texture_; }
-  const std::string& textureName() const& { return name_; }
+  [[nodiscard]] int width() const& { return width_; }
+  [[nodiscard]] int height() const& { return height_; }
+  [[nodiscard]] SDL_Texture const* entity() const& { return texture_; }
+  [[nodiscard]] const std::string& textureName() const& { return name_; }
 
   // Renderable
-  void render() override final;
+  void render() final;
 
   int x, y;
 

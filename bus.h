@@ -10,9 +10,9 @@
 
 #include <queue>
 
-#include "message.h"
 #include "exception.h"
 #include "logger.h"
+#include "message.h"
 #include "non_copyable.h"
 #include "singleton.h"
 
@@ -31,13 +31,14 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
       std::string behavior_name);
 
   /**
-   * 指定したビヘイビアにメッセージを送る
+   * 指定したビヘイビアにメッセージを送る。宛先が存在しない場合は例外を送出し、受信バッファのメッセージ数制限に達した場合はfalseを返す。
    * @tparam T
    * @param dst_behavior
    * @param msg
+   * @return
    */
   template <class T>
-  void sendMessage(std::string dst_behavior, T&& msg) {
+  bool sendMessage(std::string dst_behavior, T&& msg) {
     if (message_queue_.find(dst_behavior) == message_queue_.end()) {
       throw TruffleException(
           absl::StrFormat("%s behavior not found", dst_behavior));
@@ -47,10 +48,12 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
           absl::StrFormat(
               "Pending message size to %s had exceeded buffer size limit %i",
               dst_behavior, PENDING_MESSAGE_SIZE_LIMIT));
+      return false;
     }
     // メッセージキューが到着順に構成されることを保証する
     std::unique_lock<std::mutex> lock(mux_);
     message_queue_[dst_behavior]->emplace(msg);
+    return true;
   }
 
  private:

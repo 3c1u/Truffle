@@ -6,7 +6,9 @@
 #define TRUFFLE_MESSAGE_H
 
 namespace Truffle {
-struct Message {};
+struct Message {
+  std::string detail;
+};
 
-}
+}  // namespace Truffle
 #endif  // TRUFFLE_MESSAGE_H

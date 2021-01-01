@@ -11,7 +11,7 @@ namespace Truffle {
 
 class Renderable {
  public:
-  Renderable(const Renderer& r) : renderer_(r) {}
+  explicit Renderable(const Renderer& r) : renderer_(r) {}
 
   /**
    * メンバに対する描画処理を定義する

@@ -12,7 +12,7 @@
 namespace Truffle {
 class TruffleException : public std::runtime_error {
  public:
-  TruffleException(const std::string& message) : std::runtime_error(message) {}
+  explicit TruffleException(const std::string& message) : std::runtime_error(message) {}
 };
 
 }  // namespace Truffle

@@ -19,8 +19,8 @@ namespace Truffle {
 
 class Window : public ConstSingleton<Window>, NonCopyable {
  public:
-  const std::string& name() const& { return name_; }
-  SDL_Window const* entity() const& { return window_entity_; }
+  [[nodiscard]] const std::string& name() const& { return name_; }
+  [[nodiscard]] SDL_Window const* entity() const& { return window_entity_; }
 
  private:
   friend class ConstSingleton<Window>;

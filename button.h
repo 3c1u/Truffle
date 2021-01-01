@@ -11,9 +11,9 @@
 #include <set>
 #include <unordered_map>
 
-#include "event_publisher.h"
 #include "exception.h"
 #include "logger.h"
+#include "scene.h"
 #include "stateful_object_manager.h"
 #include "texture.h"
 
@@ -26,45 +26,6 @@ enum class ButtonState {
 };
 
 /**
- * 任意のボタンを表現するクラスの基底となるクラス。
- * ボタンに必要なメンバ関数やコールバックを提供する。
- */
-class ButtonBase : public Renderable {
- public:
-  ButtonBase(const Renderer& r) : Renderable(r) {}
-
-  virtual const std::string& name() const& = 0;
-
-  // Renderable
-  virtual void render() override {}
-
-  /**
-   * ボタンが押された時のコールバック
-   */
-  virtual void onButtonPressed() = 0;
-
-  /**
-   * ボタンが離された時のコールバック
-   */
-  virtual void onButtonReleased() = 0;
-
-  /**
-   * ボタンがホバーされた時のコールバック
-   */
-  virtual void onMouseHovered() = 0;
-
-  /**
-   * ボタンがアンホバーされた時のコールバック
-   */
-  virtual void onMouseUnhovered() = 0;
-
-  virtual void _onButtonPressed(SDL_Event& ev) = 0;
-  virtual void _onButtonReleased(SDL_Event& ev) = 0;
-  virtual void _onMouseHovered() = 0;
-  virtual void _onMouseUnhovered() = 0;
-};
-
-/**
  * 基礎的なボタンの機能を提供するクラス
  */
 class ImageButton : public ButtonBase {
@@ -72,7 +33,8 @@ class ImageButton : public ButtonBase {
   /**
    * 画像テクスチャボタンのコンストラクタ
    *
-   * @param r レンダラ
+   * @param parent_scene このボタンが所属する親シーンの参照
+   * @param renderer レンダラ
    * @param name 名前
    * @param x x座標
    * @param y y座標
@@ -80,12 +42,9 @@ class ImageButton : public ButtonBase {
    * @param path_hovered ホバー状態のテクスチャのパス
    * @param path_pressed 押下時のテクスチャのパス
    */
-  ImageButton(const Renderer& r, std::string name, int x, int y,
-              std::string path_normal, std::string path_hovered = "",
-              std::string path_pressed = "");
-
-  // ButtonBase
-  const std::string& name() const& override { return name_; }
+  ImageButton(Scene& parent_scene, const Renderer& renderer, std::string name,
+              int x, int y, std::string path_normal,
+              std::string path_hovered = "", std::string path_pressed = "");
 
   // Renderable
   void render() override final;
@@ -96,10 +55,10 @@ class ImageButton : public ButtonBase {
   virtual void onMouseHovered() override;
   virtual void onMouseUnhovered() override;
 
-  void _onButtonPressed(SDL_Event&) override final;
-  void _onButtonReleased(SDL_Event&) override final;
-  void _onMouseHovered() override final;
-  void _onMouseUnhovered() override final;
+  void _onButtonPressed(SDL_Event&) final;
+  void _onButtonReleased(SDL_Event&) final;
+  void _onMouseHovered() final;
+  void _onMouseUnhovered() final;
 
  protected:
   StatefulObjectManager<ImageTexture, ButtonState> state_manager;
@@ -110,16 +69,15 @@ class ImageButton : public ButtonBase {
   bool isMouseLeftButtonReleased(SDL_Event& ev);
 
  private:
-  const std::string name_;
-
   const int x_;
   const int y_;
 };
 
-ImageButton::ImageButton(const Renderer& r, std::string name, int x, int y,
+ImageButton::ImageButton(Scene& parent_scene, const Renderer& renderer,
+                         std::string name, int x, int y,
                          std::string path_normal, std::string path_hovered,
                          std::string path_pressed)
-    : ButtonBase(r), x_(x), y_(y) {
+    : ButtonBase(parent_scene, renderer, name), x_(x), y_(y) {
   state_manager.setInitStatefulObject(ButtonState::Normal, renderer_,
                                       path_normal, name + "_normal", x_, y_);
   // Bind object
