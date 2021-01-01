@@ -8,6 +8,7 @@
 #include <forward_list>
 #include <memory>
 
+#include "message.h"
 #include "renderable.h"
 #include "stateful_object_manager.h"
 #include "texture.h"

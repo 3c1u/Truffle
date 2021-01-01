@@ -10,14 +10,13 @@
 
 #include <queue>
 
+#include "message.h"
 #include "exception.h"
 #include "logger.h"
 #include "non_copyable.h"
 #include "singleton.h"
 
 namespace Truffle {
-
-class Message {};
 
 class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
  public:
@@ -66,8 +65,9 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
 
 std::shared_ptr<std::queue<Message>> EventMessageBus::getMessageQueue(
     std::string behavior_name) {
-  if (message_queue_.find(behavior_name) != message_queue_.end()) {
-    message_queue_[behavior_name] = std::queue<Message>();
+  if (message_queue_.find(behavior_name) == message_queue_.end()) {
+    auto queue = std::make_shared<std::queue<Message>>();
+    message_queue_.emplace(behavior_name, queue);
   }
   return message_queue_.at(behavior_name);
 }
