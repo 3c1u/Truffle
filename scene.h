@@ -180,6 +180,7 @@ TruffleBehavior::TruffleBehavior(Scene& parent_scene, std::string name)
 }
 
 std::optional<Message> TruffleBehavior::recvMessage() {
+  assert(message_queue_ != nullptr);
   if (message_queue_->empty()) {
     return std::nullopt;
   }
@@ -190,16 +191,20 @@ std::optional<Message> TruffleBehavior::recvMessage() {
 
 ButtonBase::ButtonBase(Scene& parent_scene, const Renderer& renderer,
                        std::string name)
-    : Renderable(renderer), name_(std::move(name)), parent_scene_(parent_scene) {
+    : Renderable(renderer),
+      name_(std::move(name)),
+      parent_scene_(parent_scene) {
   parent_scene_.setButton(*this);
 }
 
 bool ButtonBase::sendMessage(std::string dst_behavior, const Message& msg) {
-  parent_scene_.sendMessage(std::move(dst_behavior), std::forward<const Message&>(msg));
+  parent_scene_.sendMessage(std::move(dst_behavior),
+                            std::forward<const Message&>(msg));
 }
 
 bool ButtonBase::sendMessage(std::string dst_behavior, Message&& msg) {
-  parent_scene_.sendMessage(std::move(dst_behavior), std::forward<Message&&>(msg));
+  parent_scene_.sendMessage(std::move(dst_behavior),
+                            std::forward<Message&&>(msg));
 }
 
 Scene::Scene(std::string scene_name)

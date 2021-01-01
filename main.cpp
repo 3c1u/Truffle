@@ -30,7 +30,7 @@ using Truffle::TextTextureMode;
 using Truffle::TruffleBehavior;
 using Truffle::Window;
 
- class Genji final : public TruffleBehavior {
+class Genji final : public TruffleBehavior {
  public:
   static constexpr std::string_view name = "genji_behavior";
 
@@ -52,13 +52,14 @@ using Truffle::Window;
   ImageTexture texture_;
 };
 
- enum class IllustyaState { Normal, Hovered };
+enum class IllustyaState { Normal, Hovered };
 
- class Illustya final : public TruffleBehavior {
+class Illustya final : public TruffleBehavior {
  public:
   static constexpr std::string_view name = "illustya_behavior";
 
-  explicit Illustya(Scene& parent_scene, const Renderer& r) : TruffleBehavior(parent_scene, name.data()) {
+  explicit Illustya(Scene& parent_scene, const Renderer& r)
+      : TruffleBehavior(parent_scene, name.data()) {
     // Define state machine
     state_manager_.setInitStatefulObject(
         IllustyaState::Normal, r, "../testdata/home.png", name.data(), 0, 0);

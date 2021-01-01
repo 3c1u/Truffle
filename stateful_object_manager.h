@@ -23,7 +23,7 @@ enum class NullState {};
  * @tparam State
  */
 template <class StatefulObject, class State>
-class StatefulObjectManager {
+class StatefulObjectManager : NonCopyable {
  public:
   StatefulObjectManager() = default;
 
@@ -174,7 +174,7 @@ class StatefulObjectManager<StatelessObject, NullState> {
    * @param obj 初期状態を示すオブジェクト
    */
   template <typename... Args>
-  void setInitStatefulObject(Args... args) {
+  void setInitStatefulObject(Args&&... args) {
     if (init_) {
       throw TruffleException("init stateful object can't be called twice");
     }
