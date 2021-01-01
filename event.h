@@ -5,6 +5,8 @@
 #ifndef TRUFFLE_EVENT_H
 #define TRUFFLE_EVENT_H
 
+#include <stdint.h>
+
 namespace Truffle {
 
 /**
