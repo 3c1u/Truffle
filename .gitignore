@@ -126,3 +126,7 @@ fabric.properties
 
 testdata/
 .idea/
+
+build/
+.clangd/
+compile_commands.json
