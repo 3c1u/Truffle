@@ -30,7 +30,6 @@ add_executable(Truffle
   font_storage.h
   color.h
   bus.h
-  event_publisher.h
   event.h)
 
 target_include_directories(Truffle PRIVATE ${SPDLOG_INCLUDE_DIRS})
