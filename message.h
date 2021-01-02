@@ -5,6 +5,8 @@
 #ifndef TRUFFLE_MESSAGE_H
 #define TRUFFLE_MESSAGE_H
 
+#include <string>
+
 namespace Truffle {
 struct Message {
   std::string detail;

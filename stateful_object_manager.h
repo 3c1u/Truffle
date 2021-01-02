@@ -7,7 +7,9 @@
 
 #include <memory>
 #include <unordered_map>
+#include <set>
 
+#include "non_copyable.h"
 #include "exception.h"
 #include "logger.h"
 
