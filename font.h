@@ -22,7 +22,19 @@ class Font : NonCopyable {
     }
   }
 
-  ~Font() { TTF_CloseFont(font_); }
+  Font(TTF_Font* font) : font_(font) {
+    if (!font) {
+      throw TruffleException(
+          "attempt to initialize Truffle::Font with an invalid TTF_Font "
+          "reference");
+    }
+  }
+
+  ~Font() {
+    if (font_) {
+      TTF_CloseFont(font_);
+    }
+  }
 
   [[nodiscard]] TTF_Font const* entity() const& { return font_; }
 

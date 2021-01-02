@@ -13,6 +13,7 @@ namespace Truffle {
 static const std::shared_ptr<spdlog::logger> logger = spdlog::default_logger();
 
 enum class LogLevel {
+  DEBUG,
   INFO,
   WARN,
   ERROR,
@@ -20,6 +21,9 @@ enum class LogLevel {
 
 void log(LogLevel lv, std::string&& message) {
   switch (lv) {
+    case LogLevel::DEBUG:
+      logger->debug(message);
+      break;
     case LogLevel::INFO:
       logger->info(message);
       break;
