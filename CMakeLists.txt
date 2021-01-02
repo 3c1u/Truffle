@@ -12,7 +12,27 @@ find_package(absl REQUIRED)
 find_package(fmt REQUIRED) # used in absl internally
 find_package(spdlog REQUIRED)
 
-add_executable(Truffle main.cpp window.h non_copyable.h exception.h renderer.h dispatcher.h renderable.h texture.h logger.h scene.h scene_manager.h button.h stateful_object_manager.h font.h color.h bus.h event_publisher.h event.h)
+add_executable(Truffle
+  main.cpp
+  window.h
+  non_copyable.h
+  exception.h
+  renderer.h
+  dispatcher.h
+  renderable.h
+  texture.h
+  logger.h
+  scene.h
+  scene_manager.h
+  button.h
+  stateful_object_manager.h
+  font.h
+  font_storage.h
+  color.h
+  bus.h
+  event_publisher.h
+  event.h)
+
 target_include_directories(Truffle PRIVATE ${SPDLOG_INCLUDE_DIRS})
 target_link_libraries(Truffle PRIVATE ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_TTF_LIBRARIES} fmt::fmt
          absl::strings absl::flat_hash_map absl::str_format)
