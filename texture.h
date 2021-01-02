@@ -16,37 +16,29 @@
 #include "color.h"
 #include "exception.h"
 #include "font.h"
-#include "renderable.h"
+#include "object.h"
 #include "renderer.h"
 
 namespace Truffle {
 
-class ImageTexture : public Renderable {
+class ImageTexture : public Object {
  public:
   ImageTexture(const Renderer& renderer, std::string path, std::string name,
                int x, int y);
   ~ImageTexture() { SDL_DestroyTexture(texture_); }
 
-  [[nodiscard]] int width() const& { return width_; }
-  [[nodiscard]] int height() const& { return height_; }
   [[nodiscard]] SDL_Texture const* entity() const& { return texture_; }
-  [[nodiscard]] const std::string& name() const& { return name_; }
 
   // Renderable
   void render() final;
 
-  int x, y;
-
  private:
   SDL_Texture* texture_;
-  int width_;
-  int height_;
-  const std::string name_;
 };
 
 ImageTexture::ImageTexture(const Renderer& renderer, std::string path,
                            std::string name, int x, int y)
-    : Renderable(renderer), name_(name), x(x), y(y) {
+    : Object(renderer, name) {
   SDL_Surface* surface = IMG_Load(path.c_str());
   if (!surface) {
     throw TruffleException(
@@ -58,24 +50,25 @@ ImageTexture::ImageTexture(const Renderer& renderer, std::string path,
     throw TruffleException(absl::StrFormat(
         "Failed to create texture entity from %s", path.c_str()));
   }
-  width_ = surface->w;
-  height_ = surface->h;
+
+  setPoint(x, y);
+  setWidth(surface->w);
+  setHeight(surface->h);
 
   SDL_FreeSurface(surface);
 }
 
 void ImageTexture::render() {
   if (do_render_) {
-    SDL_Rect render_rect = {x, y, width_, height_};
     SDL_RenderCopy(const_cast<SDL_Renderer*>(renderer_.entity()), texture_,
-                   nullptr /* TODO: introduce clip settings */, &render_rect);
+                   nullptr /* TODO: introduce clip settings */, &renderRect());
   }
 }
 
 // https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_42.html#SEC42
 enum class TextTextureMode { Solid, Blend, Shaded };
 
-class TextTexture : public Renderable {
+class TextTexture : public Object {
  public:
   TextTexture(const Renderer& renderer, const Font& font, std::string name,
               int x, int y);
@@ -85,27 +78,21 @@ class TextTexture : public Renderable {
   void loadBlendTexture(std::string text, Color& fg);
   void loadShadedTexture(std::string text, Color& fg, Color& bg);
 
-  [[nodiscard]] int width() const& { return width_; }
-  [[nodiscard]] int height() const& { return height_; }
   [[nodiscard]] SDL_Texture const* entity() const& { return texture_; }
-  [[nodiscard]] const std::string& textureName() const& { return name_; }
 
   // Renderable
   void render() final;
 
-  int x, y;
-
  private:
   const Font& font_;
   SDL_Texture* texture_;
-  int width_;
-  int height_;
-  std::string name_;
 };
 
 TextTexture::TextTexture(const Renderer& renderer, const Font& font,
                          std::string name, int x, int y)
-    : Renderable(renderer), font_(font), name_(name), x(x), y(y) {}
+    : Object(renderer, name), font_(font) {
+  setPoint(x, y);
+}
 
 void TextTexture::loadSolidTexture(std::string text, Color& fg) {
   if (!texture_) {
@@ -122,8 +109,10 @@ void TextTexture::loadSolidTexture(std::string text, Color& fg) {
     throw TruffleException(absl::StrFormat(
         "Failed to create texture entity from %s", text.c_str()));
   }
-  width_ = surface->w;
-  height_ = surface->h;
+
+  setWidth(surface->w);
+  setHeight(surface->h);
+
   SDL_FreeSurface(surface);
 }
 
@@ -142,8 +131,9 @@ void TextTexture::loadBlendTexture(std::string text, Color& fg) {
     throw TruffleException(absl::StrFormat(
         "Failed to create texture entity from %s", text.c_str()));
   }
-  width_ = surface->w;
-  height_ = surface->h;
+  setWidth(surface->w);
+  setHeight(surface->h);
+
   SDL_FreeSurface(surface);
 }
 
@@ -162,16 +152,16 @@ void TextTexture::loadShadedTexture(std::string text, Color& fg, Color& bg) {
     throw TruffleException(absl::StrFormat(
         "Failed to create texture entity from %s", text.c_str()));
   }
-  width_ = surface->w;
-  height_ = surface->h;
+  setWidth(surface->w);
+  setHeight(surface->h);
+
   SDL_FreeSurface(surface);
 }
 
 void TextTexture::render() {
   if (do_render_) {
-    SDL_Rect render_rect = {x, y, width_, height_};
     SDL_RenderCopy(const_cast<SDL_Renderer*>(renderer_.entity()), texture_,
-                   nullptr /* TODO: introduce clip settings */, &render_rect);
+                   nullptr /* TODO: introduce clip settings */, &renderRect());
   }
 }
 

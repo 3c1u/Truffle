@@ -18,6 +18,7 @@
 #include "logger.h"
 #include "non_copyable.h"
 #include "renderable.h"
+#include "scene.h"
 #include "stateful_object_manager.h"
 
 namespace Truffle {

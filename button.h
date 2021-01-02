@@ -13,7 +13,8 @@
 
 #include "exception.h"
 #include "logger.h"
-#include "scene.h"
+#include "message.h"
+#include "object.h"
 #include "stateful_object_manager.h"
 #include "texture.h"
 
@@ -25,15 +26,62 @@ enum class ButtonState {
   Pressed,
 };
 
+class ButtonCallback {
+ public:
+  /**
+   * ボタンが押された時のコールバック
+   */
+  virtual void onButtonPressed() = 0;
+
+  /**
+   * ボタンが離された時のコールバック
+   */
+  virtual void onButtonReleased() = 0;
+
+  /**
+   * ボタンがホバーされた時のコールバック
+   */
+  virtual void onMouseHovered() = 0;
+
+  /**
+   * ボタンがアンホバーされた時のコールバック
+   */
+  virtual void onMouseUnhovered() = 0;
+
+  /**
+   * 同一シーン内のビヘイビアにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
+   * 失敗した場合はfalseを返す。
+   * @param dst_behavior
+   * @param msg
+   * @return
+   */
+  bool sendMessage(std::string dst_behavior, const Message& msg);
+  bool sendMessage(std::string dst_behavior, Message&& msg);
+
+  virtual void _onButtonPressed(SDL_Event& ev) = 0;
+  virtual void _onButtonReleased(SDL_Event& ev) = 0;
+  virtual void _onMouseHovered() = 0;
+  virtual void _onMouseUnhovered() = 0;
+};
+
+bool ButtonCallback::sendMessage(std::string dst_behavior, const Message& msg) {
+  //  parent_scene_.sendMessage(std::move(dst_behavior),
+  //                            std::forward<const Message&>(msg));
+}
+
+bool ButtonCallback::sendMessage(std::string dst_behavior, Message&& msg) {
+  //  parent_scene_.sendMessage(std::move(dst_behavior),
+  //                            std::forward<Message&&>(msg));
+}
+
 /**
  * 基礎的なボタンの機能を提供するクラス
  */
-class ImageButton : public ButtonBase {
+class ImageButton : public Object, public ButtonCallback {
  public:
   /**
    * 画像テクスチャボタンのコンストラクタ
    *
-   * @param parent_scene このボタンが所属する親シーンの参照
    * @param renderer レンダラ
    * @param name 名前
    * @param x x座標
@@ -42,9 +90,9 @@ class ImageButton : public ButtonBase {
    * @param path_hovered ホバー状態のテクスチャのパス
    * @param path_pressed 押下時のテクスチャのパス
    */
-  ImageButton(Scene& parent_scene, const Renderer& renderer, std::string name,
-              int x, int y, std::string path_normal,
-              std::string path_hovered = "", std::string path_pressed = "");
+  ImageButton(const Renderer& renderer, std::string name, int x, int y,
+              std::string path_normal, std::string path_hovered = "",
+              std::string path_pressed = "");
 
   // Renderable
   void render() override final;
@@ -67,61 +115,74 @@ class ImageButton : public ButtonBase {
   bool isMouseUnhovered();
   bool isMouseLeftButtonPressed(SDL_Event& ev);
   bool isMouseLeftButtonReleased(SDL_Event& ev);
-
- private:
-  const int x_;
-  const int y_;
 };
 
-ImageButton::ImageButton(Scene& parent_scene, const Renderer& renderer,
-                         std::string name, int x, int y,
-                         std::string path_normal, std::string path_hovered,
-                         std::string path_pressed)
-    : ButtonBase(parent_scene, renderer, name), x_(x), y_(y) {
+ImageButton::ImageButton(const Renderer& renderer, std::string name, int x,
+                         int y, std::string path_normal,
+                         std::string path_hovered, std::string path_pressed)
+    : Object(renderer, name) {
   state_manager.setInitStatefulObject(ButtonState::Normal, renderer_,
-                                      path_normal, name + "_normal", x_, y_);
+                                      path_normal, name + "_normal", x, y);
   // Bind object
   if (!path_hovered.empty()) {
     state_manager.bindStatefulObject(ButtonState::Hovered, renderer_,
-                                     path_hovered, name + "_hovered", x_, y_);
+                                     path_hovered, name + "_hovered", x, y);
   }
   if (!path_pressed.empty()) {
     state_manager.bindStatefulObject(ButtonState::Pressed, renderer_,
-                                     path_pressed, name + "_pressed", x_, y_);
+                                     path_pressed, name + "_pressed", x, y);
   }
   // define state transition
   state_manager.setStateTransition(ButtonState::Hovered, ButtonState::Pressed);
   state_manager.setStateTransition(ButtonState::Pressed, ButtonState::Hovered);
   state_manager.setStateTransition(ButtonState::Normal, ButtonState::Hovered);
   state_manager.setStateTransition(ButtonState::Hovered, ButtonState::Normal);
+
+  setPoint(state_manager.activeStateObject().renderRect().x,
+           state_manager.activeStateObject().renderRect().y);
+  setWidth(state_manager.activeStateObject().renderRect().w);
+  setHeight(state_manager.activeStateObject().renderRect().h);
+
+  // Register event callbacks
+  setEventCallback([this] { this->_onMouseHovered(); });
+  setEventCallback([this] { this->_onMouseUnhovered(); });
+  setEventCallback([this](SDL_Event& e) { this->_onButtonReleased(e); });
+  setEventCallback([this](SDL_Event& e) { this->_onButtonPressed(e); });
 }
 
 void ImageButton::render() {
-  auto& active_state = state_manager.activeStateObject();
-  SDL_Rect render_rect = {x_, y_, active_state.width(), active_state.height()};
-  SDL_RenderCopy(const_cast<SDL_Renderer*>(renderer_.entity()),
-                 const_cast<SDL_Texture*>(active_state.entity()),
-                 nullptr /* TODO: introduce clip settings */, &render_rect);
+  SDL_RenderCopy(
+      const_cast<SDL_Renderer*>(renderer_.entity()),
+      const_cast<SDL_Texture*>(state_manager.activeStateObject().entity()),
+      nullptr /* TODO: introduce clip settings */, &renderRect());
 }
 
 void ImageButton::onButtonPressed() {
   log(LogLevel::INFO, "State changed from Hovered to Pressed");
   state_manager.stateTransition(ButtonState::Pressed);
+  setWidth(state_manager.activeStateObject().renderRect().w);
+  setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 void ImageButton::onButtonReleased() {
   log(LogLevel::INFO, "State changed from Pressed to Hovered");
   state_manager.stateTransition(ButtonState::Hovered);
+  setWidth(state_manager.activeStateObject().renderRect().w);
+  setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 void ImageButton::onMouseHovered() {
   log(LogLevel::INFO, "State changed from Normal to Hovered");
   state_manager.stateTransition(ButtonState::Hovered);
+  setWidth(state_manager.activeStateObject().renderRect().w);
+  setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 void ImageButton::onMouseUnhovered() {
   log(LogLevel::INFO, "State changed from Hovered to Normal");
   state_manager.stateTransition(ButtonState::Normal);
+  setWidth(state_manager.activeStateObject().renderRect().w);
+  setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 void ImageButton::_onButtonPressed(SDL_Event& ev) {
@@ -156,19 +217,23 @@ void ImageButton::_onMouseUnhovered() {
 bool ImageButton::isMouseHovered() {
   int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
-  return x_ < mouse_x &&
-         mouse_x < x_ + state_manager.activeStateObject().width() &&
-         y_ < mouse_y &&
-         mouse_y < y_ + state_manager.activeStateObject().height();
+  return renderRect().x < mouse_x &&
+         mouse_x < renderRect().x +
+                       state_manager.activeStateObject().renderRect().w &&
+         renderRect().y < mouse_y &&
+         mouse_y <
+             renderRect().y + state_manager.activeStateObject().renderRect().h;
 }
 
 bool ImageButton::isMouseUnhovered() {
   int mouse_x, mouse_y;
   SDL_GetMouseState(&mouse_x, &mouse_y);
-  return !(x_ < mouse_x &&
-           mouse_x < x_ + state_manager.activeStateObject().width() &&
-           y_ < mouse_y &&
-           mouse_y < y_ + state_manager.activeStateObject().height());
+  return !(renderRect().x < mouse_x &&
+           mouse_x < renderRect().x +
+                         state_manager.activeStateObject().renderRect().w &&
+           renderRect().y < mouse_y &&
+           mouse_y < renderRect().y +
+                         state_manager.activeStateObject().renderRect().h);
 }
 
 bool ImageButton::isMouseLeftButtonPressed(SDL_Event& ev) {

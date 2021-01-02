@@ -6,12 +6,12 @@
 #define TRUFFLE_STATEFUL_OBJECT_MANAGER_H
 
 #include <memory>
-#include <unordered_map>
 #include <set>
+#include <unordered_map>
 
-#include "non_copyable.h"
 #include "exception.h"
 #include "logger.h"
+#include "non_copyable.h"
 
 namespace Truffle {
 
