@@ -12,6 +12,9 @@ find_package(absl REQUIRED)
 find_package(fmt REQUIRED) # used in absl internally
 find_package(spdlog REQUIRED)
 
+add_library(truffle_behavior behavior.cpp behavior.h)
+target_link_libraries(truffle_behavior PRIVATE ${SDL2_LIBRARIES} absl::flat_hash_map)
+
 add_executable(Truffle
   main.cpp
   window.h

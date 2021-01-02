@@ -12,69 +12,12 @@
 #include <queue>
 
 #include "bus.h"
-#include "message.h"
-#include "object.h"
 #include "renderable.h"
-#include "stateful_object_manager.h"
-#include "texture.h"
 
 namespace Truffle {
 
-class Scene;
-
-class TruffleBehavior {
- public:
-  /**
-   * ビヘイビアのコンストラクタ
-   * @param parent_scene ビヘイビアが所属するシーンの参照
-   * @param name ビヘイビアの名前。名前に重複があると例外が発生するので注意。
-   */
-  TruffleBehavior(Scene& parent_scene, std::string name);
-
-  virtual ~TruffleBehavior() = default;
-
-  /**
-   * シーンの開始時に一度だけ実行されるコールバック
-   */
-  virtual void start(){};
-
-  /**
-   * 毎フレーム毎に1回呼ばれるコールバック
-   */
-  virtual void update(SDL_Event&){};
-
-  /**
-   * オブジェクトを追加する
-   * @param renderable
-   */
-  void addObject(Object& object) { objects_.push_front(object); }
-
-  /**
-   * Sceneで発行されたメッセージキューのポインタを保持する。
-   * @param message_queue_ptr
-   */
-  void setMessageQueue(std::shared_ptr<std::queue<Message>> message_queue_ptr) {
-    message_queue_ = std::move(message_queue_ptr);
-  }
-
-  /**
-   * メッセージを1件受け取る
-   * @return
-   */
-  std::optional<Message> recvMessage();
-
-  [[nodiscard]] const std::string& name() const& { return name_; }
-  [[nodiscard]] const std::forward_list<std::reference_wrapper<Object>>&
-  targetObjects() const& {
-    return objects_;
-  }
-
- private:
-  Scene& parent_scene_;
-  std::forward_list<std::reference_wrapper<Object>> objects_;
-  std::shared_ptr<std::queue<Message>> message_queue_;
-  std::string name_;
-};
+class TruffleBehavior;
+class Object;
 
 class Scene : NonCopyable {
  public:
@@ -116,9 +59,138 @@ class Scene : NonCopyable {
       behaviors_;
 };
 
+class TruffleBehavior {
+ public:
+  /**
+   * ビヘイビアのコンストラクタ
+   * @param parent_scene ビヘイビアが所属するシーンの参照
+   * @param name ビヘイビアの名前。名前に重複があると例外が発生するので注意。
+   */
+  TruffleBehavior(Scene& parent_scene, std::string name);
+
+  virtual ~TruffleBehavior() = default;
+
+  /**
+   * シーンの開始時に一度だけ実行されるコールバック
+   */
+  virtual void start(){};
+
+  /**
+   * 毎フレーム毎に1回呼ばれるコールバック
+   */
+  virtual void update(SDL_Event&){};
+
+  /**
+   * オブジェクトを追加する。名前が重複していれば例外を発生する。
+   * @param renderable
+   */
+  void addObject(Object& object);
+
+  /**
+   * Sceneで発行されたメッセージキューのポインタを保持する。
+   * @param message_queue_ptr
+   */
+  void setMessageQueue(std::shared_ptr<std::queue<Message>> message_queue_ptr) {
+    message_queue_ = std::move(message_queue_ptr);
+  }
+
+  /**
+   * メッセージを1件受け取る
+   * @return
+   */
+  std::optional<Message> recvMessage();
+
+  /**
+   * メッセージを1件送る
+   * @tparam T
+   * @param dst_behavior
+   * @param message
+   */
+  template <class T>
+  void sendMessage(std::string dst_behavior, T&& message) {
+    parent_scene_.sendMessage(dst_behavior, std::forward<T&&>(message));
+  }
+
+  [[nodiscard]] const std::string& name() const& { return name_; }
+  [[nodiscard]] const absl::flat_hash_map<std::string,
+                                          std::reference_wrapper<Object>>&
+  targetObjects() const& {
+    return objects_;
+  }
+
+ private:
+  Scene& parent_scene_;
+  absl::flat_hash_map<std::string, std::reference_wrapper<Object>> objects_;
+  std::shared_ptr<std::queue<Message>> message_queue_;
+  std::string name_;
+};
+
+// TODO: implement
+class ObjectGroup {};
+
+class Object : public Renderable {
+ public:
+  const std::string& name() const& { return name_; }
+
+  virtual void render() override {}
+
+  const SDL_Rect& renderRect() const& { return render_rect; }
+
+  void setPoint(int x, int y) {
+    render_rect.x = x;
+    render_rect.y = y;
+  }
+  void setWidth(int width) { render_rect.w = width; }
+  void setHeight(int height) { render_rect.h = height; }
+
+  std::forward_list<std::function<void(SDL_Event&)>>
+  eventCallbacksWithDescriptor() {
+    return callback_with_event_descriptor_;
+  }
+  std::forward_list<std::function<void()>> eventCallbacks() {
+    return callback_;
+  }
+
+ protected:
+  explicit Object(TruffleBehavior& parent_behavior, const Renderer& renderer,
+                  std::string name)
+      : Renderable(renderer), parent_behavior(parent_behavior), name_(name) {}
+
+  /**
+   * TODO: この方法は嫌なので別のやりかたを考える
+   * @param callback
+   */
+  void setEventCallback(std::function<void()> callback) {
+    callback_.push_front(callback);
+  }
+  void setEventCallback(std::function<void(SDL_Event&)> callback) {
+    callback_with_event_descriptor_.push_front(callback);
+  }
+
+  template <class T>
+  void sendMessage(std::string dst_behavior, T&& message) {
+    parent_behavior.sendMessage(dst_behavior, message);
+  }
+
+ private:
+  TruffleBehavior& parent_behavior;
+  std::string name_;
+  SDL_Rect render_rect;
+  std::forward_list<std::function<void()>> callback_;
+  std::forward_list<std::function<void(SDL_Event&)>>
+      callback_with_event_descriptor_;
+};
+
 TruffleBehavior::TruffleBehavior(Scene& parent_scene, std::string name)
     : parent_scene_(parent_scene), name_(name) {
   parent_scene_.setBehavior(*this);
+}
+
+void TruffleBehavior::addObject(Object& object) {
+  if (objects_.find(object.name()) != objects_.end()) {
+    throw TruffleException("Duplicated name object can't be registered");
+  }
+  objects_.emplace(object.name(), object);
 }
 
 std::optional<Message> TruffleBehavior::recvMessage() {
