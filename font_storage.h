@@ -15,6 +15,7 @@
 #include <string>
 
 #include "font.h"
+#include "logger.h"
 #include "non_copyable.h"
 #include "singleton.h"
 
@@ -33,6 +34,7 @@ class FontStorage final : public MutableSingleton<FontStorage>,
 
   FontStorage() {
     // SDL2_ttf should be initialized once
+    log(LogLevel::DEBUG, "SDL_ttf initialized");
     TTF_Init();
   }
 
