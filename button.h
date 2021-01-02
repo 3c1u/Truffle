@@ -47,10 +47,12 @@ class ButtonCallback {
    */
   virtual void onMouseUnhovered() = 0;
 
-  virtual void _onButtonPressed(SDL_Event& ev) = 0;
-  virtual void _onButtonReleased(SDL_Event& ev) = 0;
-  virtual void _onMouseHovered() = 0;
-  virtual void _onMouseUnhovered() = 0;
+  void _onButtonPressed(SDL_Event& ev);
+  void _onButtonReleased(SDL_Event& evc);
+  void _onMouseHovered();
+  void _onMouseUnhovered();
+
+  StatefulObjectManager<ImageTexture, ButtonState> state_manager;
 
  protected:
   bool isMouseHovered(const SDL_Rect& render_rect);
@@ -58,6 +60,34 @@ class ButtonCallback {
   bool isPressed(SDL_Event& ev, const SDL_Rect& render_rect);
   bool isReleased(SDL_Event& ev, const SDL_Rect& render_rect);
 };
+
+void ButtonCallback::_onButtonPressed(SDL_Event& ev) {
+  if (isPressed(ev, state_manager.activeStateObject().renderRect()) &&
+      state_manager.activeState() == ButtonState::Hovered) {
+    onButtonPressed();
+  }
+}
+
+void ButtonCallback::_onButtonReleased(SDL_Event& ev) {
+  if (isReleased(ev, state_manager.activeStateObject().renderRect()) &&
+      state_manager.activeState() == ButtonState::Pressed) {
+    onButtonReleased();
+  }
+}
+
+void ButtonCallback::_onMouseHovered() {
+  if (isMouseHovered(state_manager.activeStateObject().renderRect()) &&
+      state_manager.activeState() == ButtonState::Normal) {
+    onMouseHovered();
+  }
+}
+
+void ButtonCallback::_onMouseUnhovered() {
+  if (isMouseUnhovered(state_manager.activeStateObject().renderRect()) &&
+      state_manager.activeState() == ButtonState::Hovered) {
+    onMouseUnhovered();
+  }
+}
 
 bool ButtonCallback::isMouseHovered(const SDL_Rect& render_rect) {
   int mouse_x, mouse_y;
@@ -114,11 +144,6 @@ class ImageButton : public Object, public ButtonCallback {
   virtual void onMouseHovered() override;
   virtual void onMouseUnhovered() override;
 
-  void _onButtonPressed(SDL_Event&) final;
-  void _onButtonReleased(SDL_Event&) final;
-  void _onMouseHovered() final;
-  void _onMouseUnhovered() final;
-
   /**
    * 同一シーン内のビヘイビアにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
    * 失敗した場合はfalseを返す。
@@ -132,7 +157,6 @@ class ImageButton : public Object, public ButtonCallback {
                    Message&& msg);
 
  protected:
-  StatefulObjectManager<ImageTexture, ButtonState> state_manager;
 };
 
 ImageButton::ImageButton(TruffleBehavior& behavior, const Renderer& renderer,
@@ -214,34 +238,6 @@ void ImageButton::onMouseUnhovered() {
   state_manager.stateTransition(ButtonState::Normal);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);
-}
-
-void ImageButton::_onButtonPressed(SDL_Event& ev) {
-  if (isPressed(ev, state_manager.activeStateObject().renderRect()) &&
-      state_manager.activeState() == ButtonState::Hovered) {
-    onButtonPressed();
-  }
-}
-
-void ImageButton::_onButtonReleased(SDL_Event& ev) {
-  if (isReleased(ev, state_manager.activeStateObject().renderRect()) &&
-      state_manager.activeState() == ButtonState::Pressed) {
-    onButtonReleased();
-  }
-}
-
-void ImageButton::_onMouseHovered() {
-  if (isMouseHovered(state_manager.activeStateObject().renderRect()) &&
-      state_manager.activeState() == ButtonState::Normal) {
-    onMouseHovered();
-  }
-}
-
-void ImageButton::_onMouseUnhovered() {
-  if (isMouseUnhovered(state_manager.activeStateObject().renderRect()) &&
-      state_manager.activeState() == ButtonState::Hovered) {
-    onMouseUnhovered();
-  }
 }
 
 }  // namespace Truffle
