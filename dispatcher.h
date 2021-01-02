@@ -41,10 +41,14 @@ class Dispatcher : NonCopyable {
         return;
       }
 
-      // Handle button callbacks
-      for (const auto& [_, cb] : scene_manager_.currentScene().buttons()) {
-        cb.get()._onMouseHovered();
-        cb.get()._onMouseUnhovered();
+      // Handle object callbacks
+      for (const auto& [_, behavior] :
+           scene_manager_.currentScene().behaviors()) {
+        for (const auto& object : behavior.get().targetObjects()) {
+          for (const auto& callback : object.get().eventCallbacks()) {
+            callback();
+          }
+        }
       }
 
       SDL_SetRenderDrawColor(const_cast<SDL_Renderer*>(renderer_.entity()),
@@ -53,13 +57,9 @@ class Dispatcher : NonCopyable {
 
       // Render behaviors
       for (auto& [_, b] : scene_manager_.currentScene().behaviors()) {
-        for (auto& r : b.get().targetRenderables()) {
+        for (auto& r : b.get().targetObjects()) {
           r.get().render();
         }
-      }
-      // Render buttons
-      for (auto& [_, b] : scene_manager_.currentScene().buttons()) {
-        b.get().render();
       }
 
       SDL_RenderPresent(const_cast<SDL_Renderer*>(renderer_.entity()));
@@ -78,13 +78,18 @@ class Dispatcher : NonCopyable {
         scene_manager_.transitScene();
       }
       // Handle behaviors update
-      for (auto& [_, b] : scene_manager_.currentScene().behaviors()) {
-        b.get().update(e);
+      for (auto& [_, behavior] : scene_manager_.currentScene().behaviors()) {
+        behavior.get().update(e);
       }
-      // Handle button events related with hardware interruption
-      for (auto& [_, b] : scene_manager_.currentScene().buttons()) {
-        b.get()._onButtonPressed(e);
-        b.get()._onButtonReleased(e);
+      // Handle events related with hardware interruption
+      for (const auto& [_, behavior] :
+           scene_manager_.currentScene().behaviors()) {
+        for (const auto& object : behavior.get().targetObjects()) {
+          for (const auto& callback :
+               object.get().eventCallbacksWithDescriptor()) {
+            callback(e);
+          }
+        }
       }
     }
     return true;
