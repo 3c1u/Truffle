@@ -11,9 +11,9 @@
 #include <SDL2/SDL_ttf.h>
 
 #include <memory>
-#include <optional>
 #include <string>
 
+#include "exception.h"
 #include "font.h"
 #include "logger.h"
 #include "non_copyable.h"
@@ -21,16 +21,15 @@
 
 namespace Truffle {
 
-class FontStorage final : public MutableSingleton<FontStorage>,
+class FontStorage final : public ConstSingleton<FontStorage>,
                           public NonCopyable {
  public:
-  static std::optional<std::unique_ptr<Font>> openFont(std::string const& path,
-                                                       size_t size) {
+  static std::unique_ptr<Font> openFont(std::string const& path, size_t size) {
     return FontStorage::get().openFont_(path, size);
   }
 
  private:
-  friend class MutableSingleton<FontStorage>;
+  friend class ConstSingleton<FontStorage>;
 
   FontStorage() {
     // SDL2_ttf should be initialized once
@@ -38,19 +37,8 @@ class FontStorage final : public MutableSingleton<FontStorage>,
     TTF_Init();
   }
 
-  TTF_Font* openRawFont_(std::string const& path, size_t size) {
-    return TTF_OpenFont(path.c_str(), static_cast<int>(size));
-  }
-
-  std::optional<std::unique_ptr<Font>> openFont_(std::string const& path,
-                                                 size_t size) {
-    auto font = openRawFont_(path, size);
-
-    if (font == nullptr) {
-      return std::nullopt;
-    }
-
-    return std::make_optional(std::make_unique<Font>(font));
+  std::unique_ptr<Font> openFont_(std::string const& path, size_t size) const {
+    return std::make_unique<Font>(path, size);
   }
 };
 

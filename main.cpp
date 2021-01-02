@@ -7,12 +7,13 @@
 
 #include "button.h"
 #include "dispatcher.h"
+#include "font_storage.h"
+#include "logger.h"
 #include "message.h"
 #include "renderer.h"
 #include "scene_manager.h"
 #include "texture.h"
 #include "window.h"
-#include "font_storage.h"
 
 using Truffle::ButtonState;
 using Truffle::Color;
@@ -172,7 +173,14 @@ int main() {
   renderer.setDrawColor(Color{0xff, 0xff, 0xff, 0xff});
 
   // Load font
-  auto f = *FontStorage::openFont("../font/lazy.ttf", 100);
+  std::unique_ptr<Font> f{};
+  try {
+    f = FontStorage::openFont("../font/lazy.ttf", 100);
+  } catch (Truffle::TruffleException const& e) {
+    Truffle::log(Truffle::LogLevel::ERROR,
+                 fmt::format("FontStorage::openFont failed: {}", e.what()));
+    return 1;
+  }
 
   // define scene manager
   SceneManager<SceneState> manager;
