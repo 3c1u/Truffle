@@ -44,7 +44,7 @@ class Dispatcher : NonCopyable {
       // Handle object callbacks
       for (const auto& [_, behavior] :
            scene_manager_.currentScene().behaviors()) {
-        for (const auto& object : behavior.get().targetObjects()) {
+        for (const auto& [_, object] : behavior.get().targetObjects()) {
           for (const auto& callback : object.get().eventCallbacks()) {
             callback();
           }
@@ -57,7 +57,7 @@ class Dispatcher : NonCopyable {
 
       // Render behaviors
       for (auto& [_, b] : scene_manager_.currentScene().behaviors()) {
-        for (auto& r : b.get().targetObjects()) {
+        for (auto& [_, r] : b.get().targetObjects()) {
           r.get().render();
         }
       }
@@ -84,7 +84,7 @@ class Dispatcher : NonCopyable {
       // Handle events related with hardware interruption
       for (const auto& [_, behavior] :
            scene_manager_.currentScene().behaviors()) {
-        for (const auto& object : behavior.get().targetObjects()) {
+        for (const auto& [_, object] : behavior.get().targetObjects()) {
           for (const auto& callback :
                object.get().eventCallbacksWithDescriptor()) {
             callback(e);

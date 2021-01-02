@@ -135,8 +135,8 @@ class Counter : public TruffleBehavior {
 
   explicit Counter(Scene& scene, const Renderer& r, const Font& f)
       : TruffleBehavior(scene, name.data()),
-        texture_(r, f, name.data(), 0, 0),
-        button_(r, name.data(), 150, 150, "../testdata/home.png",
+        texture_(*this, r, f, "counter_board", 0, 0),
+        button_(*this, r, "counter_button", 150, 150, "../testdata/home.png",
                 "../testdata/top.png") {
     addObject(texture_);
     addObject(button_);

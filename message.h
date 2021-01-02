@@ -9,6 +9,8 @@
 
 namespace Truffle {
 struct Message {
+  // 宛先オブジェクト
+  std::string dst_object;
   std::string detail;
 };
 
