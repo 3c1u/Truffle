@@ -23,36 +23,36 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
   static constexpr uint32_t PENDING_MESSAGE_SIZE_LIMIT = 1024;
 
   /**
-   * 各ビヘイビアに属するメッセージキューのポインタを返す。もしキューが存在しなければ作成して返す。
-   * @param behavior_name
+   * 各コントローラーに属するメッセージキューのポインタを返す。もしキューが存在しなければ作成して返す。
+   * @param controller_name
    * @return
    */
   std::shared_ptr<std::queue<Message>> getMessageQueue(
-      std::string behavior_name);
+      std::string controller_name);
 
   /**
-   * 指定したビヘイビアにメッセージを送る。宛先が存在しない場合は例外を送出し、受信バッファのメッセージ数制限に達した場合はfalseを返す。
+   * 指定したコントローラーにメッセージを送る。宛先が存在しない場合は例外を送出し、受信バッファのメッセージ数制限に達した場合はfalseを返す。
    * @tparam T
-   * @param dst_behavior
+   * @param dst_controller
    * @param msg
    * @return
    */
   template <class T>
-  bool sendMessage(std::string dst_behavior, T&& msg) {
-    if (message_queue_.find(dst_behavior) == message_queue_.end()) {
+  bool sendMessage(std::string dst_controller, T&& msg) {
+    if (message_queue_.find(dst_controller) == message_queue_.end()) {
       throw TruffleException(
-          absl::StrFormat("%s behavior not found", dst_behavior));
+          absl::StrFormat("%s controller not found", dst_controller));
     }
-    if (message_queue_[dst_behavior]->size() >= PENDING_MESSAGE_SIZE_LIMIT) {
+    if (message_queue_[dst_controller]->size() >= PENDING_MESSAGE_SIZE_LIMIT) {
       log(LogLevel::WARN,
           absl::StrFormat(
               "Pending message size to %s had exceeded buffer size limit %i",
-              dst_behavior, PENDING_MESSAGE_SIZE_LIMIT));
+              dst_controller, PENDING_MESSAGE_SIZE_LIMIT));
       return false;
     }
     // メッセージキューが到着順に構成されることを保証する
     std::unique_lock<std::mutex> lock(mux_);
-    message_queue_[dst_behavior]->emplace(msg);
+    message_queue_[dst_controller]->emplace(msg);
     return true;
   }
 
@@ -67,12 +67,12 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
 };
 
 std::shared_ptr<std::queue<Message>> EventMessageBus::getMessageQueue(
-    std::string behavior_name) {
-  if (message_queue_.find(behavior_name) == message_queue_.end()) {
+    std::string controller_name) {
+  if (message_queue_.find(controller_name) == message_queue_.end()) {
     auto queue = std::make_shared<std::queue<Message>>();
-    message_queue_.emplace(behavior_name, queue);
+    message_queue_.emplace(controller_name, queue);
   }
-  return message_queue_.at(behavior_name);
+  return message_queue_.at(controller_name);
 }
 
 }  // namespace Truffle

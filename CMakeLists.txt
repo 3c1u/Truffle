@@ -22,7 +22,7 @@ add_executable(Truffle
   renderable.h
   texture.h
   logger.h
-  scene.h
+        object_tree.h
   scene_manager.h
   button.h
   stateful_object_manager.h

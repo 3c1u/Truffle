@@ -20,25 +20,25 @@ using Truffle::Color;
 using Truffle::Dispatcher;
 using Truffle::Font;
 using Truffle::FontStorage;
-using Truffle::ImageButton;
+using Truffle::BasicButtonObject;
 using Truffle::ImageTexture;
 using Truffle::Message;
 using Truffle::NullState;
 using Truffle::Renderer;
-using Truffle::Scene;
 using Truffle::SceneManager;
+using Truffle::TruffleScene;
 using Truffle::StatefulObjectManager;
 using Truffle::TextTexture;
 using Truffle::TextTextureMode;
-using Truffle::TruffleBehavior;
+using Truffle::TruffleController;
 using Truffle::Window;
 
-// class Genji final : public TruffleBehavior {
+// class Genji final : public TruffleController {
 // public:
 //  static constexpr std::string_view name = "genji_behavior";
 //
 //  explicit Genji(Scene& parent_scene, const Renderer& r)
-//      : TruffleBehavior(parent_scene, name.data()),
+//      : TruffleController(parent_scene, name.data()),
 //        texture_(r, "../testdata/genji.jpg", name.data(), 0, 0) {
 //    addRenderable(texture_);
 //  }
@@ -57,12 +57,12 @@ using Truffle::Window;
 //
 // enum class IllustyaState { Normal, Hovered };
 //
-// class Illustya final : public TruffleBehavior {
+// class Illustya final : public TruffleController {
 // public:
 //  static constexpr std::string_view name = "illustya_behavior";
 //
 //  explicit Illustya(Scene& parent_scene, const Renderer& r)
-//      : TruffleBehavior(parent_scene, name.data()) {
+//      : TruffleController(parent_scene, name.data()) {
 //    // Define state machine
 //    state_manager_.setInitStatefulObject(
 //        IllustyaState::Normal, r, "../testdata/home.png", name.data(), 0, 0);
@@ -106,19 +106,19 @@ enum class SceneState {
   Clicked,
 };
 
-// class ImageButton2 : public ImageButton {
+// class BasicButtonObject2 : public BasicButtonObject {
 // public:
 //  static constexpr std::string_view name = "image_button2";
 //
-//  ImageButton2(SceneManager<SceneState>& manager,
+//  BasicButtonObject2(SceneManager<SceneState>& manager,
 //               Renderer& r, int x, int y, std::string path1, std::string
 //               path2)
-//      : ImageButton(r, name.data(), x, y, path1, path2),
+//      : BasicButtonObject(r, name.data(), x, y, path1, path2),
 //        manager_(manager) {}
 //
 //  void onMouseHovered() override final {
 //    state_manager.stateTransition(ButtonState::Hovered);
-//    std::cout << "imagebutton2 hovered" << std::endl;
+//    std::cout << "BasicButtonObject2 hovered" << std::endl;
 //  }
 //
 //  void onButtonPressed() override final {
@@ -129,12 +129,12 @@ enum class SceneState {
 //  SceneManager<SceneState>& manager_;
 //};
 
-class Counter : public TruffleBehavior {
+class CounterController : public TruffleController {
  public:
   static constexpr std::string_view name = "counter_behavior";
 
-  explicit Counter(Scene& scene, const Renderer& r, const Font& f)
-      : TruffleBehavior(scene, name.data()),
+  explicit CounterController(TruffleScene& scene, const Renderer& r, const Font& f)
+      : TruffleController(scene, name.data()),
         texture_(*this, r, f, "counter_board", 0, 0),
         button_(*this, r, "counter_button", 150, 150, "../testdata/home.png",
                 "../testdata/top.png") {
@@ -161,7 +161,7 @@ class Counter : public TruffleBehavior {
  private:
   std::string current_text_ = "0";
   TextTexture texture_;
-  ImageButton button_;
+  BasicButtonObject button_;
 };
 
 int main() {
@@ -193,7 +193,7 @@ int main() {
   // create scene
   auto& s1 = manager.addScene(SceneState::Init, "root_scene");
   // Add counter
-  Counter tb(s1, renderer, *f);
+  CounterController tb(s1, renderer, *f);
 
   //  Illustya it(renderer);
   //  s1.setBehavior(it);
@@ -205,7 +205,7 @@ int main() {
   //  auto& s2 = manager.addScene(SceneState::Clicked, "clicked_scene");
   //  TimeBoard tb3(renderer, f);
   //  s2.setBehavior(tb3);
-  //  ImageButton2 i2b(manager, renderer, "illustya", 150, 150,
+  //  BasicButtonObject2 i2b(manager, renderer, "illustya", 150, 150,
   //  "../testdata/home.png", "../testdata/top.png"); s2.setButton(i2b);
   //
   //  manager.setSceneTransition(SceneState::Init, SceneState::Clicked);

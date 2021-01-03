@@ -17,8 +17,8 @@
 #include "event.h"
 #include "logger.h"
 #include "non_copyable.h"
+#include "object_tree.h"
 #include "renderable.h"
-#include "scene.h"
 #include "stateful_object_manager.h"
 
 namespace Truffle {
@@ -33,7 +33,7 @@ class SceneManager : NonCopyable {
    * @param scene_name
    * @return
    */
-  Scene& addScene(SceneState state, std::string scene_name) {
+  TruffleScene& addScene(SceneState state, std::string scene_name) {
     if (state_manager_.initialized()) {
       state_manager_.bindStatefulObject(state, scene_name);
     } else {
@@ -99,7 +99,7 @@ class SceneManager : NonCopyable {
    *
    * @return
    */
-  const Scene& currentScene() { return state_manager_.activeStateObject(); }
+  const TruffleScene& currentScene() { return state_manager_.activeStateObject(); }
 
   /**
    * 現在のシーンの状態を返す
@@ -110,7 +110,7 @@ class SceneManager : NonCopyable {
 
  private:
   std::queue<SceneState> pending_scene_transition_;
-  StatefulObjectManager<Scene, SceneState> state_manager_;
+  StatefulObjectManager<TruffleScene, SceneState> state_manager_;
   std::mutex mux_;
 };
 
