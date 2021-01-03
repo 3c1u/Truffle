@@ -144,6 +144,20 @@ class StatefulObjectManager : NonCopyable {
   }
 
   /**
+   * Managerの管理対象となるすべてのオブジェクトを返す
+   * @return
+   */
+  std::unordered_map<State, std::shared_ptr<StatefulObject>>&
+  allManagedStatefulObject() & {
+    return binded_stateful_object_;
+  }
+  [[nodiscard]] const std::unordered_map<State,
+                                         std::shared_ptr<StatefulObject>>&
+  allManagedStatefulObject() const& {
+    return binded_stateful_object_;
+  }
+
+  /**
    * 現在の状態を取得する
    */
   State activeState() { return current_state_; }

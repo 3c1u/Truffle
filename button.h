@@ -131,9 +131,10 @@ class BasicButtonObject : public TruffleObject, public ButtonCallback {
    * @param path_hovered ホバー状態のテクスチャのパス
    * @param path_pressed 押下時のテクスチャのパス
    */
-  BasicButtonObject(TruffleController& parent_controller, const Renderer& renderer,
-              std::string name, int x, int y, std::string path_normal,
-              std::string path_hovered = "", std::string path_pressed = "");
+  BasicButtonObject(TruffleController& parent_controller,
+                    const Renderer& renderer, std::string name, int x, int y,
+                    std::string path_normal, std::string path_hovered = "",
+                    std::string path_pressed = "");
 
   // Renderable
   void render() override final;
@@ -159,21 +160,25 @@ class BasicButtonObject : public TruffleObject, public ButtonCallback {
  protected:
 };
 
-BasicButtonObject::BasicButtonObject(TruffleController& parent_controller, const Renderer& renderer,
-                         std::string name, int x, int y,
-                         std::string path_normal, std::string path_hovered,
-                         std::string path_pressed)
+BasicButtonObject::BasicButtonObject(TruffleController& parent_controller,
+                                     const Renderer& renderer, std::string name,
+                                     int x, int y, std::string path_normal,
+                                     std::string path_hovered,
+                                     std::string path_pressed)
     : TruffleObject(parent_controller, renderer, name) {
-  state_manager.setInitStatefulObject(ButtonState::Normal, parent_controller, renderer_,
-                                      path_normal, name + "_normal", x, y);
+  state_manager.setInitStatefulObject(ButtonState::Normal, parent_controller,
+                                      renderer_, path_normal, name + "_normal",
+                                      x, y);
   // Bind object
   if (!path_hovered.empty()) {
-    state_manager.bindStatefulObject(ButtonState::Hovered, parent_controller, renderer_,
-                                     path_hovered, name + "_hovered", x, y);
+    state_manager.bindStatefulObject(ButtonState::Hovered, parent_controller,
+                                     renderer_, path_hovered, name + "_hovered",
+                                     x, y);
   }
   if (!path_pressed.empty()) {
-    state_manager.bindStatefulObject(ButtonState::Pressed, parent_controller, renderer_,
-                                     path_pressed, name + "_pressed", x, y);
+    state_manager.bindStatefulObject(ButtonState::Pressed, parent_controller,
+                                     renderer_, path_pressed, name + "_pressed",
+                                     x, y);
   }
   // define state transition
   state_manager.setStateTransition(ButtonState::Hovered, ButtonState::Pressed);
@@ -200,14 +205,14 @@ void BasicButtonObject::render() {
       nullptr /* TODO: introduce clip settings */, &renderRect());
 }
 
-void BasicButtonObject::sendMessage(std::string dst_controller, std::string dst_object,
-                              Message& msg) {
+void BasicButtonObject::sendMessage(std::string dst_controller,
+                                    std::string dst_object, Message& msg) {
   msg.dst_object = dst_object;
   TruffleObject::sendMessage(dst_controller, msg);
 }
 
-void BasicButtonObject::sendMessage(std::string dst_controller, std::string dst_object,
-                              Message&& msg) {
+void BasicButtonObject::sendMessage(std::string dst_controller,
+                                    std::string dst_object, Message&& msg) {
   msg.dst_object = dst_object;
   TruffleObject::sendMessage(dst_controller, msg);
 }

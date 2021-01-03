@@ -8,6 +8,7 @@
 #include "button.h"
 #include "dispatcher.h"
 #include "font_storage.h"
+#include "fps.h"
 #include "logger.h"
 #include "message.h"
 #include "renderer.h"
@@ -15,30 +16,30 @@
 #include "texture.h"
 #include "window.h"
 
+using Truffle::BasicButtonObject;
 using Truffle::ButtonState;
 using Truffle::Color;
 using Truffle::Dispatcher;
 using Truffle::Font;
 using Truffle::FontStorage;
-using Truffle::BasicButtonObject;
 using Truffle::ImageTexture;
 using Truffle::Message;
 using Truffle::NullState;
 using Truffle::Renderer;
 using Truffle::SceneManager;
-using Truffle::TruffleScene;
 using Truffle::StatefulObjectManager;
 using Truffle::TextTexture;
 using Truffle::TextTextureMode;
-using Truffle::TruffleController;
+using Truffle::TruffleControllerImpl;
+using Truffle::TruffleScene;
 using Truffle::Window;
 
-// class Genji final : public TruffleController {
+// class Genji final : public TruffleControllerImpl {
 // public:
 //  static constexpr std::string_view name = "genji_behavior";
 //
 //  explicit Genji(Scene& parent_scene, const Renderer& r)
-//      : TruffleController(parent_scene, name.data()),
+//      : TruffleControllerImpl(parent_scene, name.data()),
 //        texture_(r, "../testdata/genji.jpg", name.data(), 0, 0) {
 //    addRenderable(texture_);
 //  }
@@ -57,12 +58,12 @@ using Truffle::Window;
 //
 // enum class IllustyaState { Normal, Hovered };
 //
-// class Illustya final : public TruffleController {
+// class Illustya final : public TruffleControllerImpl {
 // public:
 //  static constexpr std::string_view name = "illustya_behavior";
 //
 //  explicit Illustya(Scene& parent_scene, const Renderer& r)
-//      : TruffleController(parent_scene, name.data()) {
+//      : TruffleControllerImpl(parent_scene, name.data()) {
 //    // Define state machine
 //    state_manager_.setInitStatefulObject(
 //        IllustyaState::Normal, r, "../testdata/home.png", name.data(), 0, 0);
@@ -129,12 +130,13 @@ enum class SceneState {
 //  SceneManager<SceneState>& manager_;
 //};
 
-class CounterController : public TruffleController {
+class CounterController : public TruffleControllerImpl {
  public:
   static constexpr std::string_view name = "counter_behavior";
 
-  explicit CounterController(TruffleScene& scene, const Renderer& r, const Font& f)
-      : TruffleController(scene, name.data()),
+  explicit CounterController(TruffleScene& scene, const Renderer& r,
+                             const Font& f)
+      : TruffleControllerImpl(scene, name.data()),
         texture_(*this, r, f, "counter_board", 0, 0),
         button_(*this, r, "counter_button", 150, 150, "../testdata/home.png",
                 "../testdata/top.png") {

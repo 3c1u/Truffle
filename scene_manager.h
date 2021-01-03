@@ -28,7 +28,6 @@ class SceneManager : NonCopyable {
  public:
   /**
    * シーンの状態を登録する。生成されたシーンの参照を返す。
-   *
    * @param state
    * @param scene_name
    * @return
@@ -44,7 +43,6 @@ class SceneManager : NonCopyable {
 
   /**
    * シーンの遷移を定義する。与えられたシーンが未作成であれば例外を返す。
-   *
    * @param from
    * @param to
    */
@@ -61,7 +59,6 @@ class SceneManager : NonCopyable {
 
   /**
    * シーン遷移イベントを発行する
-   *
    * @param dst_scene 遷移先
    */
   void sendSceneTransitionSignal(SceneState dst_scene) {
@@ -96,19 +93,40 @@ class SceneManager : NonCopyable {
 
   /**
    * 現在アクティブなシーンを返す
-   *
    * @return
    */
-  const TruffleScene& currentScene() { return state_manager_.activeStateObject(); }
+  const TruffleScene& currentScene() {
+    return state_manager_.activeStateObject();
+  }
 
   /**
    * 現在のシーンの状態を返す
-   *
    * @return
    */
   SceneState currentSceneState() { return state_manager_.activeState(); }
 
+  /**
+   * 全てのシーンにまたがって必要なコントローラーを登録する
+   * @param isolated_object
+   */
+  void setSceneIsolatedController(
+      SceneIsolatedTruffleControllerImpl& isolated_controller) {
+    if (scene_isolated_controllers_.find(isolated_controller.name()) !=
+        scene_isolated_controllers_.end()) {
+      throw TruffleException(
+          absl::StrFormat("scene isolated controller %s already exists",
+                          isolated_controller.name()));
+    }
+    scene_isolated_controllers_.emplace(isolated_controller.name(),
+                                        isolated_controller);
+  }
+
  private:
+  // 全てのシーンにまたがって存在できるコントローラー
+  absl::flat_hash_map<std::string,
+                      std::reference_wrapper<SceneIsolatedTruffleControllerImpl>>
+      scene_isolated_controllers_;
+
   std::queue<SceneState> pending_scene_transition_;
   StatefulObjectManager<TruffleScene, SceneState> state_manager_;
   std::mutex mux_;

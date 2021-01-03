@@ -10,8 +10,10 @@
 #include <forward_list>
 #include <memory>
 #include <queue>
+#include <variant>
 
 #include "bus.h"
+#include "non_copyable.h"
 #include "renderable.h"
 
 namespace Truffle {
@@ -48,9 +50,13 @@ class TruffleScene : NonCopyable {
   }
 
  private:
-  friend class TruffleController;
+  friend class TruffleControllerImpl;
 
-  void setController(TruffleController& b);
+  /**
+   * コントローラーを追加する。
+   * @param controller
+   */
+  void setController(TruffleController& controller);
 
   std::string name_;
 
@@ -59,14 +65,14 @@ class TruffleScene : NonCopyable {
       controllers_;
 };
 
-class TruffleController {
+class TruffleController : NonCopyable {
  public:
   /**
    * コントローラーのコンストラクタ
-   * @param parent_scene コントローラーが所属するシーンの参照
-   * @param name コントローラーの名前。名前に重複があると例外が発生するので注意。
+   * @param name
+   * コントローラーの名前。名前に重複があると例外が発生するので注意。
    */
-  TruffleController(TruffleScene& parent_scene, std::string name);
+  TruffleController(std::string name);
 
   virtual ~TruffleController() = default;
 
@@ -101,38 +107,93 @@ class TruffleController {
   std::optional<Message> recvMessage();
 
   /**
-   * メッセージを1件送る
-   * @tparam T
-   * @param dst_controller
-   * @param message
+   * このコントローラーによって管理されているすべてのオブジェクトを返す。
+   * @return
    */
-  template <class T>
-  void sendMessage(std::string dst_controller, T&& message) {
-    parent_scene_.sendMessage(dst_controller, std::forward<T&&>(message));
+  [[nodiscard]] const absl::flat_hash_map<
+      std::string, std::reference_wrapper<TruffleObject>>&
+  targetObjects() const& {
+    return objects_;
+  }
+  absl::flat_hash_map<std::string, std::reference_wrapper<TruffleObject>>&
+  targetObjects() & {
+    return objects_;
   }
 
   [[nodiscard]] const std::string& name() const& { return name_; }
-  [[nodiscard]] const absl::flat_hash_map<std::string,
-                                          std::reference_wrapper<TruffleObject>>&
-  targetObjects() const& {
-    return objects_;
+
+  /**
+   * メッセージを1件送る
+   * @param dst_controller
+   * @param message
+   */
+  virtual void sendMessage(std::string dst_controller, Message&& message) = 0;
+  virtual void sendMessage(std::string dst_controller,
+                           const Message& message) = 0;
+
+ private:
+  absl::flat_hash_map<std::string, std::reference_wrapper<TruffleObject>>
+      objects_;
+  std::shared_ptr<std::queue<Message>> message_queue_;
+  std::string name_;
+};
+
+/**
+ * 普通のコントローラー
+ */
+class TruffleControllerImpl : public TruffleController {
+ public:
+  /**
+   * コントローラーのコンストラクタ
+   * @param parent_scene コントローラーが所属するシーンの参照
+   * @param name
+   * コントローラーの名前。名前に重複があると例外が発生するので注意。
+   */
+  TruffleControllerImpl(TruffleScene& parent_scene, std::string name);
+
+  void sendMessage(std::string dst_controller, Message&& message) override {
+    parent_scene_.sendMessage(dst_controller, std::forward<Message&&>(message));
+  }
+  void sendMessage(std::string dst_controller,
+                   const Message& message) override {
+    parent_scene_.sendMessage(dst_controller,
+                              std::forward<const Message&>(message));
   }
 
  private:
   TruffleScene& parent_scene_;
-  absl::flat_hash_map<std::string, std::reference_wrapper<TruffleObject>> objects_;
-  std::shared_ptr<std::queue<Message>> message_queue_;
-  std::string name_;
+};
+
+class SceneIsolatedTruffleControllerImpl : public TruffleController {
+ public:
+  /**
+   * コントローラーのコンストラクタ
+   * @param parent_scene コントローラーが所属するシーンの参照
+   * @param name
+   * コントローラーの名前。名前に重複があると例外が発生するので注意。
+   */
+  SceneIsolatedTruffleControllerImpl(std::string name)
+      : TruffleController(name) {}
+
+  void sendMessage(std::string dst_controller, Message&& message) override {
+    // unimplemented
+    assert(false);
+  }
+  void sendMessage(std::string dst_controller,
+                   const Message& message) override {
+    // unimplemented
+    assert(false);
+  }
 };
 
 // TODO: implement
 class ObjectGroup {};
 
-class TruffleObject : public Renderable {
+class TruffleObject : public Renderable, NonCopyable {
  public:
-  const std::string& name() const& { return name_; }
-
   virtual void render() override {}
+
+  const std::string& name() const& { return name_; }
 
   const SDL_Rect& renderRect() const& { return render_rect; }
 
@@ -148,9 +209,11 @@ class TruffleObject : public Renderable {
   }
 
  protected:
-  explicit TruffleObject(TruffleController& parent_controller, const Renderer& renderer,
-                  std::string name)
-      : Renderable(renderer), parent_controller(parent_controller), name_(name) {}
+  explicit TruffleObject(TruffleController& parent_controller,
+                         const Renderer& renderer, std::string name)
+      : Renderable(renderer),
+        parent_controller_(parent_controller),
+        name_(name) {}
 
   /**
    * イベントハンドラーを登録する。
@@ -162,20 +225,18 @@ class TruffleObject : public Renderable {
 
   template <class T>
   void sendMessage(std::string dst_controller, T&& message) {
-    parent_controller.sendMessage(dst_controller, message);
+    parent_controller_.sendMessage(dst_controller, std::forward<T&&>(message));
   }
 
  private:
-  TruffleController& parent_controller;
+  TruffleController& parent_controller_;
+
   std::string name_;
   SDL_Rect render_rect;
   std::forward_list<std::function<void(SDL_Event&)>> callback_;
 };
 
-TruffleController::TruffleController(TruffleScene& parent_scene, std::string name)
-    : parent_scene_(parent_scene), name_(name) {
-  parent_scene_.setController(*this);
-}
+TruffleController::TruffleController(std::string name) : name_(name) {}
 
 void TruffleController::addObject(TruffleObject& object) {
   if (objects_.find(object.name()) != objects_.end()) {
@@ -194,6 +255,12 @@ std::optional<Message> TruffleController::recvMessage() {
   return message;
 }
 
+TruffleControllerImpl::TruffleControllerImpl(TruffleScene& parent_scene,
+                                             std::string name)
+    : TruffleController(name), parent_scene_(parent_scene) {
+  parent_scene_.setController(*this);
+}
+
 TruffleScene::TruffleScene(std::string scene_name)
     : name_(std::move(scene_name)), bus_(EventMessageBus::get()) {}
 
@@ -203,16 +270,16 @@ void TruffleScene::initScene() const& {
   }
 }
 
-void TruffleScene::setController(TruffleController& b) {
-  if (controllers_.find(b.name()) != controllers_.end()) {
-    throw TruffleException(
-        absl::StrFormat("controller %s had already registered", b.name()));
+void TruffleScene::setController(TruffleController& controller) {
+  if (controllers_.find(controller.name()) != controllers_.end()) {
+    throw TruffleException(absl::StrFormat(
+        "controller %s had already registered", controller.name()));
   }
-  log(LogLevel::INFO,
-      absl::StrFormat("controller %s registered to scene %s", b.name(), name_));
-  auto queue = bus_.getMessageQueue(b.name());
-  b.setMessageQueue(queue);
-  controllers_.emplace(b.name(), b);
+  log(LogLevel::INFO, absl::StrFormat("controller %s registered to scene %s",
+                                      controller.name(), name_));
+  auto queue = bus_.getMessageQueue(controller.name());
+  controller.setMessageQueue(queue);
+  controllers_.emplace(controller.name(), controller);
 }
 
 }  // namespace Truffle
