@@ -23,14 +23,15 @@ class Dispatcher : NonCopyable {
  public:
   using Callback = std::function<void(SDL_Event&)>;
 
-  Dispatcher(SceneManager<SceneState>& m, Renderer& r,
+  Dispatcher(SceneManager<SceneState>& m, Renderer& r, Font& f,
              bool enable_fps_calc = false)
       : scene_manager_(m),
         renderer_(r),
+        font_(f),
         exit_handler_([](SDL_Event&) {}),
         enable_fps_calc_(enable_fps_calc) {
     if (enable_fps_calc_) {
-//      scene_manager_.setSceneIsolatedController();
+      scene_manager_.setSceneIsolatedController(fps_controller_);
     }
   }
 
@@ -39,7 +40,11 @@ class Dispatcher : NonCopyable {
       : scene_manager_(m),
         renderer_(r),
         exit_handler_(std::move(dispatcher_exit_callback)),
-        enable_fps_calc_(enable_fps_calc) {}
+        enable_fps_calc_(enable_fps_calc) {
+    if (enable_fps_calc_) {
+      scene_manager_.setSceneIsolatedController(fps_controller_);
+    }
+  }
 
   void run() {
     // Call startup functions on root scene
@@ -58,6 +63,12 @@ class Dispatcher : NonCopyable {
       // Controllers
       for (auto& [_, controller] :
            scene_manager_.currentScene().controllers()) {
+        for (auto& [_, object] : controller.get().targetObjects()) {
+          object.get().render();
+        }
+      }
+
+      for (auto& [_, controller] : scene_manager_.sceneIsolatedControllers()) {
         for (auto& [_, object] : controller.get().targetObjects()) {
           object.get().render();
         }
@@ -88,6 +99,10 @@ class Dispatcher : NonCopyable {
            scene_manager_.currentScene().controllers()) {
         controller.get().update(e);
       }
+      for (auto& [_, controller] : scene_manager_.sceneIsolatedControllers()) {
+        controller.get().update(e);
+      }
+
       // Handle events related with hardware interruption
       for (const auto& [_, controller] :
            scene_manager_.currentScene().controllers()) {
@@ -103,11 +118,12 @@ class Dispatcher : NonCopyable {
 
   Callback exit_handler_;
   SceneManager<SceneState>& scene_manager_;
-  Renderer& renderer_;
+  const Renderer& renderer_;
+  const Font& font_;
   bool enable_fps_calc_ = false;
   uint64_t frame_;
 
-//  FpsController fps_controller_()
+  FpsController fps_controller_{renderer_, font_, "fps_controller"};
 };
 
 }  // namespace Truffle

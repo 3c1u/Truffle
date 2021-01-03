@@ -106,6 +106,15 @@ class SceneManager : NonCopyable {
   SceneState currentSceneState() { return state_manager_.activeState(); }
 
   /**
+   * 全てのシーンにまたがって必要なコントローラーの参照を取得する
+   * @return
+   */
+  const absl::flat_hash_map<std::string,
+      std::reference_wrapper<SceneIsolatedTruffleControllerImpl>>& sceneIsolatedControllers() const& {
+      return scene_isolated_controllers_;
+  }
+
+  /**
    * 全てのシーンにまたがって必要なコントローラーを登録する
    * @param isolated_object
    */

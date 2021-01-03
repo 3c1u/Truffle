@@ -15,10 +15,12 @@ class FpsController : public SceneIsolatedTruffleControllerImpl {
   explicit FpsController(const Renderer& renderer, const Font& font,
                          std::string name)
       : SceneIsolatedTruffleControllerImpl(name),
-        texture_(*this, renderer, font, name + "_texture", 0, 0) {}
+        texture_(*this, renderer, font, name + "_texture", 0, 0) {
+    addObject(texture_);
+  }
 
   void update(SDL_Event& ev) final {
-    Color cg{0xff, 0xff, 0xff, 0xff};
+    Color cg{0x00, 0x00, 0x00, 0xff};
     texture_.loadBlendTexture("string", cg);
   }
 

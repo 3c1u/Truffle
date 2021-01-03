@@ -212,7 +212,7 @@ int main() {
   //
   //  manager.setSceneTransition(SceneState::Init, SceneState::Clicked);
 
-  Dispatcher d(manager, renderer);
+  Dispatcher d(manager, renderer, *f, true);
   d.run();
 
   SDL_Quit();
