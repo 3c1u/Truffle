@@ -109,9 +109,10 @@ class SceneManager : NonCopyable {
    * 全てのシーンにまたがって必要なコントローラーの参照を取得する
    * @return
    */
-  const absl::flat_hash_map<std::string,
-      std::reference_wrapper<SceneIsolatedTruffleControllerImpl>>& sceneIsolatedControllers() const& {
-      return scene_isolated_controllers_;
+  const absl::flat_hash_map<
+      std::string, std::reference_wrapper<SceneIsolatedTruffleControllerImpl>>&
+  sceneIsolatedControllers() const& {
+    return scene_isolated_controllers_;
   }
 
   /**
@@ -132,8 +133,8 @@ class SceneManager : NonCopyable {
 
  private:
   // 全てのシーンにまたがって存在できるコントローラー
-  absl::flat_hash_map<std::string,
-                      std::reference_wrapper<SceneIsolatedTruffleControllerImpl>>
+  absl::flat_hash_map<
+      std::string, std::reference_wrapper<SceneIsolatedTruffleControllerImpl>>
       scene_isolated_controllers_;
 
   std::queue<SceneState> pending_scene_transition_;
