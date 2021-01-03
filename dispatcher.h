@@ -45,10 +45,10 @@ class Dispatcher : NonCopyable {
                              0xff, 0xff, 0xff, 0xff);
       SDL_RenderClear(const_cast<SDL_Renderer*>(renderer_.entity()));
 
-      // Render behaviors
-      for (auto& [_, b] : scene_manager_.currentScene().behaviors()) {
-        for (auto& [_, r] : b.get().targetObjects()) {
-          r.get().render();
+      // Controllers
+      for (auto& [_, controller] : scene_manager_.currentScene().controllers()) {
+        for (auto& [_, object] : controller.get().targetObjects()) {
+          object.get().render();
         }
       }
 
@@ -67,14 +67,14 @@ class Dispatcher : NonCopyable {
       if (e.user.type == EV_SCENE_CHANGED) {
         scene_manager_.transitScene();
       }
-      // Handle behaviors update
-      for (auto& [_, behavior] : scene_manager_.currentScene().behaviors()) {
-        behavior.get().update(e);
+      // Handle controller update
+      for (auto& [_, controller] : scene_manager_.currentScene().controllers()) {
+        controller.get().update(e);
       }
       // Handle events related with hardware interruption
-      for (const auto& [_, behavior] :
-           scene_manager_.currentScene().behaviors()) {
-        for (const auto& [_, object] : behavior.get().targetObjects()) {
+      for (const auto& [_, controller] :
+           scene_manager_.currentScene().controllers()) {
+        for (const auto& [_, object] : controller.get().targetObjects()) {
           for (const auto& callback :
                object.get().eventCallbacks()) {
             callback(e);

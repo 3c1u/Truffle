@@ -117,12 +117,12 @@ bool ButtonCallback::isReleased(SDL_Event& ev, const SDL_Rect& render_rect) {
 /**
  * 基礎的なボタンの機能を提供するクラス
  */
-class ImageButton : public Object, public ButtonCallback {
+class BasicButtonObject : public TruffleObject, public ButtonCallback {
  public:
   /**
-   * 画像テクスチャボタンのコンストラクタ
+   * ボタンのコンストラクタ
    *
-   * @param parent_behavior 親ビヘイビア
+   * @param parent_controller 親コントローラー
    * @param renderer レンダラ
    * @param name 名前
    * @param x x座標
@@ -131,7 +131,7 @@ class ImageButton : public Object, public ButtonCallback {
    * @param path_hovered ホバー状態のテクスチャのパス
    * @param path_pressed 押下時のテクスチャのパス
    */
-  ImageButton(TruffleBehavior& parent_behavior, const Renderer& renderer,
+  BasicButtonObject(TruffleController& parent_controller, const Renderer& renderer,
               std::string name, int x, int y, std::string path_normal,
               std::string path_hovered = "", std::string path_pressed = "");
 
@@ -145,34 +145,34 @@ class ImageButton : public Object, public ButtonCallback {
   virtual void onMouseUnhovered() override;
 
   /**
-   * 同一シーン内のビヘイビアにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
+   * 同一シーン内のコントローラーにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
    * 失敗した場合はfalseを返す。
-   * @param dst_behavior
+   * @param dst_controller
    * @param object_name
    * @param msg
    */
-  void sendMessage(std::string dst_behavior, std::string dst_object,
+  void sendMessage(std::string dst_controller, std::string dst_object,
                    Message& msg);
-  void sendMessage(std::string dst_behavior, std::string dst_object,
+  void sendMessage(std::string dst_controller, std::string dst_object,
                    Message&& msg);
 
  protected:
 };
 
-ImageButton::ImageButton(TruffleBehavior& behavior, const Renderer& renderer,
+BasicButtonObject::BasicButtonObject(TruffleController& parent_controller, const Renderer& renderer,
                          std::string name, int x, int y,
                          std::string path_normal, std::string path_hovered,
                          std::string path_pressed)
-    : Object(behavior, renderer, name) {
-  state_manager.setInitStatefulObject(ButtonState::Normal, behavior, renderer_,
+    : TruffleObject(parent_controller, renderer, name) {
+  state_manager.setInitStatefulObject(ButtonState::Normal, parent_controller, renderer_,
                                       path_normal, name + "_normal", x, y);
   // Bind object
   if (!path_hovered.empty()) {
-    state_manager.bindStatefulObject(ButtonState::Hovered, behavior, renderer_,
+    state_manager.bindStatefulObject(ButtonState::Hovered, parent_controller, renderer_,
                                      path_hovered, name + "_hovered", x, y);
   }
   if (!path_pressed.empty()) {
-    state_manager.bindStatefulObject(ButtonState::Pressed, behavior, renderer_,
+    state_manager.bindStatefulObject(ButtonState::Pressed, parent_controller, renderer_,
                                      path_pressed, name + "_pressed", x, y);
   }
   // define state transition
@@ -193,47 +193,47 @@ ImageButton::ImageButton(TruffleBehavior& behavior, const Renderer& renderer,
   setEventCallback([this](SDL_Event& e) { this->_onButtonPressed(e); });
 }
 
-void ImageButton::render() {
+void BasicButtonObject::render() {
   SDL_RenderCopy(
       const_cast<SDL_Renderer*>(renderer_.entity()),
       const_cast<SDL_Texture*>(state_manager.activeStateObject().entity()),
       nullptr /* TODO: introduce clip settings */, &renderRect());
 }
 
-void ImageButton::sendMessage(std::string dst_behavior, std::string dst_object,
+void BasicButtonObject::sendMessage(std::string dst_controller, std::string dst_object,
                               Message& msg) {
   msg.dst_object = dst_object;
-  Object::sendMessage(dst_behavior, msg);
+  TruffleObject::sendMessage(dst_controller, msg);
 }
 
-void ImageButton::sendMessage(std::string dst_behavior, std::string dst_object,
+void BasicButtonObject::sendMessage(std::string dst_controller, std::string dst_object,
                               Message&& msg) {
   msg.dst_object = dst_object;
-  Object::sendMessage(dst_behavior, msg);
+  TruffleObject::sendMessage(dst_controller, msg);
 }
 
-void ImageButton::onButtonPressed() {
+void BasicButtonObject::onButtonPressed() {
   log(LogLevel::INFO, "State changed from Hovered to Pressed");
   state_manager.stateTransition(ButtonState::Pressed);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
-void ImageButton::onButtonReleased() {
+void BasicButtonObject::onButtonReleased() {
   log(LogLevel::INFO, "State changed from Pressed to Hovered");
   state_manager.stateTransition(ButtonState::Hovered);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
-void ImageButton::onMouseHovered() {
+void BasicButtonObject::onMouseHovered() {
   log(LogLevel::INFO, "State changed from Normal to Hovered");
   state_manager.stateTransition(ButtonState::Hovered);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
-void ImageButton::onMouseUnhovered() {
+void BasicButtonObject::onMouseUnhovered() {
   log(LogLevel::INFO, "State changed from Hovered to Normal");
   state_manager.stateTransition(ButtonState::Normal);
   setWidth(state_manager.activeStateObject().renderRect().w);

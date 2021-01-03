@@ -16,14 +16,14 @@
 #include "color.h"
 #include "exception.h"
 #include "font.h"
+#include "object_tree.h"
 #include "renderer.h"
-#include "scene.h"
 
 namespace Truffle {
 
-class ImageTexture : public Object {
+class ImageTexture : public TruffleObject {
  public:
-  ImageTexture(TruffleBehavior& parent_behavior, const Renderer& renderer,
+  ImageTexture(TruffleController& parent_controller, const Renderer& renderer,
                std::string path, std::string name, int x, int y);
   ~ImageTexture() { SDL_DestroyTexture(texture_); }
 
@@ -36,10 +36,10 @@ class ImageTexture : public Object {
   SDL_Texture* texture_;
 };
 
-ImageTexture::ImageTexture(TruffleBehavior& parent_behavior,
+ImageTexture::ImageTexture(TruffleController& parent_controller,
                            const Renderer& renderer, std::string path,
                            std::string name, int x, int y)
-    : Object(parent_behavior, renderer, name) {
+    : TruffleObject(parent_controller, renderer, name) {
   SDL_Surface* surface = IMG_Load(path.c_str());
   if (!surface) {
     throw TruffleException(
@@ -69,9 +69,9 @@ void ImageTexture::render() {
 // https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_42.html#SEC42
 enum class TextTextureMode { Solid, Blend, Shaded };
 
-class TextTexture : public Object {
+class TextTexture : public TruffleObject {
  public:
-  TextTexture(TruffleBehavior& parent_behavior, const Renderer& renderer,
+  TextTexture(TruffleController& parent_controller, const Renderer& renderer,
               const Font& font, std::string name, int x, int y);
   ~TextTexture() { SDL_DestroyTexture(texture_); }
 
@@ -89,10 +89,10 @@ class TextTexture : public Object {
   SDL_Texture* texture_;
 };
 
-TextTexture::TextTexture(TruffleBehavior& parent_behavior,
+TextTexture::TextTexture(TruffleController& parent_controller,
                          const Renderer& renderer, const Font& font,
                          std::string name, int x, int y)
-    : Object(parent_behavior, renderer, name), font_(font) {
+    : TruffleObject(parent_controller, renderer, name), font_(font) {
   setPoint(x, y);
 }
 

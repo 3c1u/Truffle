@@ -2,8 +2,8 @@
 // Created by shikugawa on 2020/12/26.
 //
 
-#ifndef TRUFFLE_SCENE_H
-#define TRUFFLE_SCENE_H
+#ifndef TRUFFLE_OBJECT_TREE_H
+#define TRUFFLE_OBJECT_TREE_H
 
 #include <absl/container/flat_hash_map.h>
 
@@ -16,12 +16,12 @@
 
 namespace Truffle {
 
-class TruffleBehavior;
-class Object;
+class TruffleController;
+class TruffleObject;
 
-class Scene : NonCopyable {
+class TruffleScene : NonCopyable {
  public:
-  explicit Scene(std::string scene_name);
+  explicit TruffleScene(std::string scene_name);
 
   /**
    * シーンの初期化を行う。
@@ -29,46 +29,46 @@ class Scene : NonCopyable {
   void initScene() const&;
 
   /**
-   * 同一シーン内のビヘイビアにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
+   * 同一シーン内のコントローラーにメッセージを送る。メッセージの送信に失敗した場合は例外を送出する。
    * @tparam T
-   * @param dst_behavior
+   * @param dst_controller
    * @param message
    * @return
    */
   template <class T>
-  bool sendMessage(std::string dst_behavior, T&& message) {
-    return bus_.sendMessage(dst_behavior, std::forward<T&&>(message));
+  bool sendMessage(std::string dst_controller, T&& message) {
+    return bus_.sendMessage(dst_controller, std::forward<T&&>(message));
   }
 
   [[nodiscard]] const std::string& name() const& { return name_; }
   [[nodiscard]] const absl::flat_hash_map<
-      std::string, std::reference_wrapper<TruffleBehavior>>&
-  behaviors() const& {
-    return behaviors_;
+      std::string, std::reference_wrapper<TruffleController>>&
+  controllers() const& {
+    return controllers_;
   }
 
  private:
-  friend class TruffleBehavior;
+  friend class TruffleController;
 
-  void setBehavior(TruffleBehavior& b);
+  void setController(TruffleController& b);
 
   std::string name_;
 
   EventMessageBus& bus_;
-  absl::flat_hash_map<std::string, std::reference_wrapper<TruffleBehavior>>
-      behaviors_;
+  absl::flat_hash_map<std::string, std::reference_wrapper<TruffleController>>
+      controllers_;
 };
 
-class TruffleBehavior {
+class TruffleController {
  public:
   /**
-   * ビヘイビアのコンストラクタ
-   * @param parent_scene ビヘイビアが所属するシーンの参照
-   * @param name ビヘイビアの名前。名前に重複があると例外が発生するので注意。
+   * コントローラーのコンストラクタ
+   * @param parent_scene コントローラーが所属するシーンの参照
+   * @param name コントローラーの名前。名前に重複があると例外が発生するので注意。
    */
-  TruffleBehavior(Scene& parent_scene, std::string name);
+  TruffleController(TruffleScene& parent_scene, std::string name);
 
-  virtual ~TruffleBehavior() = default;
+  virtual ~TruffleController() = default;
 
   /**
    * シーンの開始時に一度だけ実行されるコールバック
@@ -84,7 +84,7 @@ class TruffleBehavior {
    * オブジェクトを追加する。名前が重複していれば例外を発生する。
    * @param renderable
    */
-  void addObject(Object& object);
+  void addObject(TruffleObject& object);
 
   /**
    * Sceneで発行されたメッセージキューのポインタを保持する。
@@ -103,24 +103,24 @@ class TruffleBehavior {
   /**
    * メッセージを1件送る
    * @tparam T
-   * @param dst_behavior
+   * @param dst_controller
    * @param message
    */
   template <class T>
-  void sendMessage(std::string dst_behavior, T&& message) {
-    parent_scene_.sendMessage(dst_behavior, std::forward<T&&>(message));
+  void sendMessage(std::string dst_controller, T&& message) {
+    parent_scene_.sendMessage(dst_controller, std::forward<T&&>(message));
   }
 
   [[nodiscard]] const std::string& name() const& { return name_; }
   [[nodiscard]] const absl::flat_hash_map<std::string,
-                                          std::reference_wrapper<Object>>&
+                                          std::reference_wrapper<TruffleObject>>&
   targetObjects() const& {
     return objects_;
   }
 
  private:
-  Scene& parent_scene_;
-  absl::flat_hash_map<std::string, std::reference_wrapper<Object>> objects_;
+  TruffleScene& parent_scene_;
+  absl::flat_hash_map<std::string, std::reference_wrapper<TruffleObject>> objects_;
   std::shared_ptr<std::queue<Message>> message_queue_;
   std::string name_;
 };
@@ -128,7 +128,7 @@ class TruffleBehavior {
 // TODO: implement
 class ObjectGroup {};
 
-class Object : public Renderable {
+class TruffleObject : public Renderable {
  public:
   const std::string& name() const& { return name_; }
 
@@ -148,9 +148,9 @@ class Object : public Renderable {
   }
 
  protected:
-  explicit Object(TruffleBehavior& parent_behavior, const Renderer& renderer,
+  explicit TruffleObject(TruffleController& parent_controller, const Renderer& renderer,
                   std::string name)
-      : Renderable(renderer), parent_behavior(parent_behavior), name_(name) {}
+      : Renderable(renderer), parent_controller(parent_controller), name_(name) {}
 
   /**
    * イベントハンドラーを登録する。
@@ -161,30 +161,30 @@ class Object : public Renderable {
   }
 
   template <class T>
-  void sendMessage(std::string dst_behavior, T&& message) {
-    parent_behavior.sendMessage(dst_behavior, message);
+  void sendMessage(std::string dst_controller, T&& message) {
+    parent_controller.sendMessage(dst_controller, message);
   }
 
  private:
-  TruffleBehavior& parent_behavior;
+  TruffleController& parent_controller;
   std::string name_;
   SDL_Rect render_rect;
   std::forward_list<std::function<void(SDL_Event&)>> callback_;
 };
 
-TruffleBehavior::TruffleBehavior(Scene& parent_scene, std::string name)
+TruffleController::TruffleController(TruffleScene& parent_scene, std::string name)
     : parent_scene_(parent_scene), name_(name) {
-  parent_scene_.setBehavior(*this);
+  parent_scene_.setController(*this);
 }
 
-void TruffleBehavior::addObject(Object& object) {
+void TruffleController::addObject(TruffleObject& object) {
   if (objects_.find(object.name()) != objects_.end()) {
     throw TruffleException("Duplicated name object can't be registered");
   }
   objects_.emplace(object.name(), object);
 }
 
-std::optional<Message> TruffleBehavior::recvMessage() {
+std::optional<Message> TruffleController::recvMessage() {
   assert(message_queue_ != nullptr);
   if (message_queue_->empty()) {
     return std::nullopt;
@@ -194,25 +194,25 @@ std::optional<Message> TruffleBehavior::recvMessage() {
   return message;
 }
 
-Scene::Scene(std::string scene_name)
+TruffleScene::TruffleScene(std::string scene_name)
     : name_(std::move(scene_name)), bus_(EventMessageBus::get()) {}
 
-void Scene::initScene() const& {
-  for (const auto& [_, cb] : behaviors_) {
+void TruffleScene::initScene() const& {
+  for (const auto& [_, cb] : controllers_) {
     cb.get().start();
   }
 }
 
-void Scene::setBehavior(TruffleBehavior& b) {
-  if (behaviors_.find(b.name()) != behaviors_.end()) {
+void TruffleScene::setController(TruffleController& b) {
+  if (controllers_.find(b.name()) != controllers_.end()) {
     throw TruffleException(
-        absl::StrFormat("behavior %s had already registered", b.name()));
+        absl::StrFormat("controller %s had already registered", b.name()));
   }
   log(LogLevel::INFO,
-      absl::StrFormat("behavior %s registered to scene %s", b.name(), name_));
+      absl::StrFormat("controller %s registered to scene %s", b.name(), name_));
   auto queue = bus_.getMessageQueue(b.name());
   b.setMessageQueue(queue);
-  behaviors_.emplace(b.name(), b);
+  controllers_.emplace(b.name(), b);
 }
 
 }  // namespace Truffle
