@@ -48,9 +48,9 @@ class ButtonCallback {
   virtual void onMouseUnhovered() = 0;
 
   void _onButtonPressed(SDL_Event& ev);
-  void _onButtonReleased(SDL_Event& evc);
-  void _onMouseHovered();
-  void _onMouseUnhovered();
+  void _onButtonReleased(SDL_Event& ev);
+  void _onMouseHovered(SDL_Event& ev);
+  void _onMouseUnhovered(SDL_Event& ev);
 
   StatefulObjectManager<ImageTexture, ButtonState> state_manager;
 
@@ -75,14 +75,14 @@ void ButtonCallback::_onButtonReleased(SDL_Event& ev) {
   }
 }
 
-void ButtonCallback::_onMouseHovered() {
+void ButtonCallback::_onMouseHovered(SDL_Event& ev) {
   if (isMouseHovered(state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Normal) {
     onMouseHovered();
   }
 }
 
-void ButtonCallback::_onMouseUnhovered() {
+void ButtonCallback::_onMouseUnhovered(SDL_Event& ev) {
   if (isMouseUnhovered(state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Hovered) {
     onMouseUnhovered();
@@ -187,8 +187,8 @@ ImageButton::ImageButton(TruffleBehavior& behavior, const Renderer& renderer,
   setHeight(state_manager.activeStateObject().renderRect().h);
 
   // Register event callbacks
-  setEventCallback([this] { this->_onMouseHovered(); });
-  setEventCallback([this] { this->_onMouseUnhovered(); });
+  setEventCallback([this](SDL_Event& e) { this->_onMouseHovered(e); });
+  setEventCallback([this](SDL_Event& e) { this->_onMouseUnhovered(e); });
   setEventCallback([this](SDL_Event& e) { this->_onButtonReleased(e); });
   setEventCallback([this](SDL_Event& e) { this->_onButtonPressed(e); });
 }

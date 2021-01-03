@@ -143,11 +143,7 @@ class Object : public Renderable {
   void setWidth(int width) { render_rect.w = width; }
   void setHeight(int height) { render_rect.h = height; }
 
-  std::forward_list<std::function<void(SDL_Event&)>>
-  eventCallbacksWithDescriptor() {
-    return callback_with_event_descriptor_;
-  }
-  std::forward_list<std::function<void()>> eventCallbacks() {
+  std::forward_list<std::function<void(SDL_Event&)>> eventCallbacks() {
     return callback_;
   }
 
@@ -157,14 +153,11 @@ class Object : public Renderable {
       : Renderable(renderer), parent_behavior(parent_behavior), name_(name) {}
 
   /**
-   * TODO: この方法は嫌なので別のやりかたを考える
+   * イベントハンドラーを登録する。
    * @param callback
    */
-  void setEventCallback(std::function<void()> callback) {
-    callback_.push_front(callback);
-  }
   void setEventCallback(std::function<void(SDL_Event&)> callback) {
-    callback_with_event_descriptor_.push_front(callback);
+    callback_.push_front(callback);
   }
 
   template <class T>
@@ -176,9 +169,7 @@ class Object : public Renderable {
   TruffleBehavior& parent_behavior;
   std::string name_;
   SDL_Rect render_rect;
-  std::forward_list<std::function<void()>> callback_;
-  std::forward_list<std::function<void(SDL_Event&)>>
-      callback_with_event_descriptor_;
+  std::forward_list<std::function<void(SDL_Event&)>> callback_;
 };
 
 TruffleBehavior::TruffleBehavior(Scene& parent_scene, std::string name)

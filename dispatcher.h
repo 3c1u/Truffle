@@ -41,16 +41,6 @@ class Dispatcher : NonCopyable {
         return;
       }
 
-      // Handle object callbacks
-      for (const auto& [_, behavior] :
-           scene_manager_.currentScene().behaviors()) {
-        for (const auto& [_, object] : behavior.get().targetObjects()) {
-          for (const auto& callback : object.get().eventCallbacks()) {
-            callback();
-          }
-        }
-      }
-
       SDL_SetRenderDrawColor(const_cast<SDL_Renderer*>(renderer_.entity()),
                              0xff, 0xff, 0xff, 0xff);
       SDL_RenderClear(const_cast<SDL_Renderer*>(renderer_.entity()));
@@ -86,7 +76,7 @@ class Dispatcher : NonCopyable {
            scene_manager_.currentScene().behaviors()) {
         for (const auto& [_, object] : behavior.get().targetObjects()) {
           for (const auto& callback :
-               object.get().eventCallbacksWithDescriptor()) {
+               object.get().eventCallbacks()) {
             callback(e);
           }
         }
