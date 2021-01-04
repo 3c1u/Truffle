@@ -1,5 +1,6 @@
 project(truffle_engine CXX)
 add_library(${PROJECT_NAME}
+    actor.cpp
     controller.cpp
     dispatcher.cpp
     scene_manager.cpp
@@ -7,7 +8,6 @@ add_library(${PROJECT_NAME}
     object.cpp
     scene.cpp
     router.cpp
-    actor_table.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

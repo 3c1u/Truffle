@@ -1,18 +1,25 @@
 /**
- * @file      actor_table.cpp
+ * @file      actor.cpp
  * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
- * @brief     Actor table used by router to publish message
+ * @brief     Actor interface for actor-model
  *
  * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
  */
 
-#include "actor_table.h"
-
-#include <absl/strings/str_format.h>
-
-#include "common/logger.h"
+#include "actor.h"
 
 namespace Truffle {
+
+Actor::Actor(Address address) : address_(address) {
+  ActorTable::get().add(address_, *this);
+}
+
+std::optional<Message> Actor::recv() {
+  if (message_queue_.empty()) return std::nullopt;
+  auto& message = message_queue_.front();
+  message_queue_.pop();
+  return message;
+}
 
 std::optional<ActorRef> ActorTable::lookup_(Address address) {
   // O(N) lookup
@@ -23,7 +30,7 @@ std::optional<ActorRef> ActorTable::lookup_(Address address) {
     return std::nullopt;
   }
   for (auto&& actor : table_[address.controller]) {
-    if (actor.get().name() == address.object) {
+    if (actor.get().address().object == address.object) {
       Logger::log(LogLevel::DEBUG,
                   absl::StrFormat("Succeeded to lookup %s.%s",
                                   address.controller, address.object));
@@ -43,7 +50,7 @@ void ActorTable::add_(Address address, Actor& actor) {
     return;
   }
   for (const auto& actor : table_[address.controller]) {
-    if (actor.get().name() == address.object) {
+    if (actor.get().address().object == address.object) {
       return;
     }
   }

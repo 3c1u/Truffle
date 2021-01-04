@@ -83,19 +83,21 @@ bool ButtonCallback::isReleased(SDL_Event& ev, const SDL_Rect& render_rect) {
   return false;
 }
 
-Button::Button(std::string name, int x, int y, std::string path_normal,
-               std::string path_hovered, std::string path_pressed)
-    : ButtonCallback(name) {
+Button::Button(std::string controller_name, std::string object_name, int x,
+               int y, std::string path_normal, std::string path_hovered,
+               std::string path_pressed)
+    : Actor(Address{controller_name, object_name}),
+      ButtonCallback(object_name) {
   state_manager.setInitStatefulObject(ButtonState::Normal, path_normal,
-                                      name + "_normal", x, y);
+                                      object_name + "_normal", x, y);
   // Bind object
   if (!path_hovered.empty()) {
     state_manager.bindStatefulObject(ButtonState::Hovered, path_hovered,
-                                     name + "_hovered", x, y);
+                                     object_name + "_hovered", x, y);
   }
   if (!path_pressed.empty()) {
     state_manager.bindStatefulObject(ButtonState::Pressed, path_pressed,
-                                     name + "_pressed", x, y);
+                                     object_name + "_pressed", x, y);
   }
   // define state transition
   state_manager.setStateTransition(ButtonState::Hovered, ButtonState::Pressed);

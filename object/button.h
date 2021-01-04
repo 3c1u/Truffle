@@ -69,15 +69,17 @@ class Button : public Actor, public ButtonCallback {
   /**
    * ボタンのコンストラクタ
    *
-   * @param name 名前
+   * @param controller_name オブジェクトが属するコントローラーの名前
+   * @param object_name オブジェクトの名前
    * @param x x座標
    * @param y y座標
    * @param path_normal 初期状態のテクスチャのパス
    * @param path_hovered ホバー状態のテクスチャのパス
    * @param path_pressed 押下時のテクスチャのパス
    */
-  Button(std::string name, int x, int y, std::string path_normal,
-         std::string path_hovered = "", std::string path_pressed = "");
+  Button(std::string controller_name, std::string object_name, int x, int y,
+         std::string path_normal, std::string path_hovered = "",
+         std::string path_pressed = "");
 
   // Renderable
   void render() override final;

@@ -9,7 +9,7 @@
 #ifndef TRUFFLE_ROUTER_H
 #define TRUFFLE_ROUTER_H
 
-#include "actor_table.h"
+#include "actor.h"
 #include "common/singleton.h"
 
 namespace Truffle {
@@ -18,7 +18,7 @@ class Router : public ConstSingleton<Router> {
  public:
   template <class T>
   bool transport(Address address, T&& message) {
-    return Router::get().transport_(address, std::forward<T>(message));
+    return Router::get().transport_(address, std::forward<T&&>(message));
   }
 
  private:
@@ -32,9 +32,12 @@ class Router : public ConstSingleton<Router> {
 
 template <class T>
 bool Router::transport_(Address address, T&& message) {
-  if (!RouteTable::get().lookup(address)) {
+  auto actor = ActorTable::get().lookup(address);
+  if (!actor.has_value()) {
     return false;
   }
+  actor->get().send(std::forward<T&&>(message));
+  return true;
 }
 
 }  // namespace Truffle
