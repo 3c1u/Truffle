@@ -6,39 +6,41 @@
 #include <iostream>
 
 #include "button.h"
-#include "dispatcher.h"
-#include "font_storage.h"
+#include "controller/fps.h"
+#include "engine/dispatcher.h"
+#include "engine/engine.h"
 #include "logger.h"
 #include "message.h"
 #include "renderer.h"
 #include "scene_manager.h"
 #include "texture.h"
 #include "window.h"
+#include "wrapper/sdl2/font_storage.h"
 
+using Truffle::BasicButtonObject;
 using Truffle::ButtonState;
 using Truffle::Color;
 using Truffle::Dispatcher;
 using Truffle::Font;
 using Truffle::FontStorage;
-using Truffle::BasicButtonObject;
 using Truffle::ImageTexture;
 using Truffle::Message;
 using Truffle::NullState;
 using Truffle::Renderer;
 using Truffle::SceneManager;
-using Truffle::TruffleScene;
 using Truffle::StatefulObjectManager;
 using Truffle::TextTexture;
 using Truffle::TextTextureMode;
-using Truffle::TruffleController;
+using Truffle::TruffleControllerImpl;
+using Truffle::TruffleScene;
 using Truffle::Window;
 
-// class Genji final : public TruffleController {
+// class Genji final : public TruffleControllerImpl {
 // public:
 //  static constexpr std::string_view name = "genji_behavior";
 //
 //  explicit Genji(Scene& parent_scene, const Renderer& r)
-//      : TruffleController(parent_scene, name.data()),
+//      : TruffleControllerImpl(parent_scene, name.data()),
 //        texture_(r, "../testdata/genji.jpg", name.data(), 0, 0) {
 //    addRenderable(texture_);
 //  }
@@ -57,12 +59,12 @@ using Truffle::Window;
 //
 // enum class IllustyaState { Normal, Hovered };
 //
-// class Illustya final : public TruffleController {
+// class Illustya final : public TruffleControllerImpl {
 // public:
 //  static constexpr std::string_view name = "illustya_behavior";
 //
 //  explicit Illustya(Scene& parent_scene, const Renderer& r)
-//      : TruffleController(parent_scene, name.data()) {
+//      : TruffleControllerImpl(parent_scene, name.data()) {
 //    // Define state machine
 //    state_manager_.setInitStatefulObject(
 //        IllustyaState::Normal, r, "../testdata/home.png", name.data(), 0, 0);
@@ -129,12 +131,13 @@ enum class SceneState {
 //  SceneManager<SceneState>& manager_;
 //};
 
-class CounterController : public TruffleController {
+class CounterController : public TruffleControllerImpl {
  public:
   static constexpr std::string_view name = "counter_behavior";
 
-  explicit CounterController(TruffleScene& scene, const Renderer& r, const Font& f)
-      : TruffleController(scene, name.data()),
+  explicit CounterController(TruffleScene& scene, const Renderer& r,
+                             const Font& f)
+      : TruffleControllerImpl(scene, name.data()),
         texture_(*this, r, f, "counter_board", 0, 0),
         button_(*this, r, "counter_button", 150, 150, "../testdata/home.png",
                 "../testdata/top.png") {
@@ -181,7 +184,7 @@ int main() {
   // Load font
   std::unique_ptr<Font> f{};
   try {
-    f = FontStorage::openFont("../font/lazy.ttf", 100);
+    f = FontStorage::openFont("../testdata/font/lazy.ttf", 100);
   } catch (Truffle::TruffleException const& e) {
     Truffle::log(Truffle::LogLevel::ERROR,
                  fmt::format("FontStorage::openFont failed: {}", e.what()));
@@ -210,7 +213,7 @@ int main() {
   //
   //  manager.setSceneTransition(SceneState::Init, SceneState::Clicked);
 
-  Dispatcher d(manager, renderer);
+  Dispatcher d(manager, renderer, *f, true);
   d.run();
 
   SDL_Quit();
