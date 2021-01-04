@@ -11,10 +11,10 @@
 #include <set>
 #include <unordered_map>
 
-#include "exception.h"
-#include "logger.h"
+#include "common/exception.h"
+#include "common/logger.h"
+#include "common/stateful_object_manager.h"
 #include "message.h"
-#include "stateful_object_manager.h"
 #include "texture.h"
 
 namespace Truffle {

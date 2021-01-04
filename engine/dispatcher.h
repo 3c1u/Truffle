@@ -1,20 +1,17 @@
-//
-// Created by shikugawa on 2020/12/19.
-//
+/**
+ * @file      dispatcher.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Main event loop and rendering frame
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_DISPATCHER_H
 #define TRUFFLE_DISPATCHER_H
 
 #include <SDL2/SDL.h>
-#include <absl/container/flat_hash_map.h>
 
-#include <cassert>
-#include <forward_list>
-#include <functional>
-
-#include "fps.h"
-#include "scene_manager.h"
-#include "texture.h"
+#include "common/non_copyable.h"
 
 namespace Truffle {
 
@@ -128,4 +125,4 @@ class Dispatcher : NonCopyable {
 
 }  // namespace Truffle
 
-#endif  // Truffle_DISPATCHER_H
+#endif  // TRUFFLE_DISPATCHER_H

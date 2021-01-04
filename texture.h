@@ -14,7 +14,7 @@
 #include <string>
 
 #include "color.h"
-#include "exception.h"
+#include "common/exception.h"
 #include "font.h"
 #include "object_tree.h"
 #include "renderer.h"
@@ -23,14 +23,13 @@ namespace Truffle {
 
 class ImageTexture : public TruffleObject {
  public:
-  ImageTexture(TruffleController& parent_controller, const Renderer& renderer,
-               std::string path, std::string name, int x, int y);
+  ImageTexture(std::string path, std::string name, int x, int y);
   ~ImageTexture() { SDL_DestroyTexture(texture_); }
-
-  [[nodiscard]] SDL_Texture const* entity() const& { return texture_; }
 
   // Renderable
   void render() final;
+
+  [[nodiscard]] SDL_Texture const* entity() const& { return texture_; }
 
  private:
   SDL_Texture* texture_;
@@ -61,8 +60,8 @@ ImageTexture::ImageTexture(TruffleController& parent_controller,
 
 void ImageTexture::render() {
   if (do_render_) {
-    SDL_RenderCopy(const_cast<SDL_Renderer*>(renderer_.entity()), texture_,
-                   nullptr /* TODO: introduce clip settings */, &renderRect());
+    SDL_RenderCopy(, texture_, nullptr /* TODO: introduce clip settings */,
+                   &renderRect());
   }
 }
 

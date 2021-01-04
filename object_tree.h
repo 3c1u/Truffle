@@ -13,7 +13,7 @@
 #include <variant>
 
 #include "bus.h"
-#include "non_copyable.h"
+#include "common/non_copyable.h"
 #include "renderable.h"
 
 namespace Truffle {
@@ -236,15 +236,6 @@ class TruffleObject : public Renderable, NonCopyable {
   std::forward_list<std::function<void(SDL_Event&)>> callback_;
 };
 
-TruffleController::TruffleController(std::string name) : name_(name) {}
-
-void TruffleController::addObject(TruffleObject& object) {
-  if (objects_.find(object.name()) != objects_.end()) {
-    throw TruffleException("Duplicated name object can't be registered");
-  }
-  objects_.emplace(object.name(), object);
-}
-
 std::optional<Message> TruffleController::recvMessage() {
   assert(message_queue_ != nullptr);
   if (message_queue_->empty()) {
@@ -259,27 +250,6 @@ TruffleControllerImpl::TruffleControllerImpl(TruffleScene& parent_scene,
                                              std::string name)
     : TruffleController(name), parent_scene_(parent_scene) {
   parent_scene_.setController(*this);
-}
-
-TruffleScene::TruffleScene(std::string scene_name)
-    : name_(std::move(scene_name)), bus_(EventMessageBus::get()) {}
-
-void TruffleScene::initScene() const& {
-  for (const auto& [_, cb] : controllers_) {
-    cb.get().start();
-  }
-}
-
-void TruffleScene::setController(TruffleController& controller) {
-  if (controllers_.find(controller.name()) != controllers_.end()) {
-    throw TruffleException(absl::StrFormat(
-        "controller %s had already registered", controller.name()));
-  }
-  log(LogLevel::INFO, absl::StrFormat("controller %s registered to scene %s",
-                                      controller.name(), name_));
-  auto queue = bus_.getMessageQueue(controller.name());
-  controller.setMessageQueue(queue);
-  controllers_.emplace(controller.name(), controller);
 }
 
 }  // namespace Truffle

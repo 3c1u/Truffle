@@ -1,32 +1,18 @@
-//
-// Created by shikugawa on 2020/12/19.
-//
+/**
+ * @file      renderer.cpp
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Low level SDL2 wrapper of renderer
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
-#ifndef TRUFFLE_RENDERER_H
-#define TRUFFLE_RENDERER_H
+#include "renderer.h"
 
-#include <SDL2/SDL.h>
+#include <absl/strings/str_format.h>
 
-#include "color.h"
-#include "window.h"
+#include "common/exception.h"
 
 namespace Truffle {
-
-class Renderer : public MutableSingleton<Renderer>, NonCopyable {
- public:
-  void setDrawColor(const Color& color);
-  void setDrawColor(Color&& color);
-
-  [[nodiscard]] SDL_Renderer const* entity() const& { return renderer_entity_; }
-
- private:
-  friend class MutableSingleton<Renderer>;
-
-  explicit Renderer(const Window& window);
-  ~Renderer();
-
-  SDL_Renderer* renderer_entity_;
-};
 
 Renderer::Renderer(const Window& window) {
   renderer_entity_ =
@@ -49,4 +35,3 @@ void Renderer::setDrawColor(Color&& c) {
 }
 
 }  // namespace Truffle
-#endif  // Truffle_RENDERER_H

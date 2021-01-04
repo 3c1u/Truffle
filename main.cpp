@@ -6,15 +6,16 @@
 #include <iostream>
 
 #include "button.h"
-#include "dispatcher.h"
-#include "font_storage.h"
-#include "fps.h"
+#include "controller/fps.h"
+#include "engine/dispatcher.h"
+#include "engine/engine.h"
 #include "logger.h"
 #include "message.h"
 #include "renderer.h"
 #include "scene_manager.h"
 #include "texture.h"
 #include "window.h"
+#include "wrapper/sdl2/font_storage.h"
 
 using Truffle::BasicButtonObject;
 using Truffle::ButtonState;
@@ -183,7 +184,7 @@ int main() {
   // Load font
   std::unique_ptr<Font> f{};
   try {
-    f = FontStorage::openFont("../font/lazy.ttf", 100);
+    f = FontStorage::openFont("../testdata/font/lazy.ttf", 100);
   } catch (Truffle::TruffleException const& e) {
     Truffle::log(Truffle::LogLevel::ERROR,
                  fmt::format("FontStorage::openFont failed: {}", e.what()));

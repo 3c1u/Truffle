@@ -1,25 +1,24 @@
-//
-// Created by shikugawa on 2020/12/26.
-//
+/**
+ * @file      scene_manager.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Handle scene management
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_SCENE_MANAGER_H
 #define TRUFFLE_SCENE_MANAGER_H
 
-#include <absl/container/flat_hash_map.h>
+#include <SDL.h>
 
-#include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 
-#include "bus.h"
-#include "button.h"
-#include "event.h"
-#include "logger.h"
-#include "non_copyable.h"
-#include "object_tree.h"
-#include "renderable.h"
-#include "stateful_object_manager.h"
+#include "common/exception.h"
+#include "common/logger.h"
+#include "common/non_copyable.h"
+#include "scene.h"
 
 namespace Truffle {
 
@@ -144,4 +143,4 @@ class SceneManager : NonCopyable {
 
 }  // namespace Truffle
 
-#endif  // Truffle_SCENE_H
+#endif  // TRUFFLE_SCENE_MANAGER_H

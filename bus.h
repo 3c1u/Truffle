@@ -10,11 +10,11 @@
 
 #include <queue>
 
-#include "exception.h"
-#include "logger.h"
+#include "common/exception.h"
+#include "common/logger.h"
+#include "common/non_copyable.h"
+#include "common/singleton.h"
 #include "message.h"
-#include "non_copyable.h"
-#include "singleton.h"
 
 namespace Truffle {
 

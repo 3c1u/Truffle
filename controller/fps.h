@@ -1,19 +1,19 @@
-//
-// Created by 清水嶺 on 2021/01/03.
-//
+/**
+ * @file      fps.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_FPS_H
 #define TRUFFLE_FPS_H
-
-#include "object_tree.h"
-#include "texture.h"
 
 namespace Truffle {
 
 class FpsController : public SceneIsolatedTruffleControllerImpl {
  public:
-  explicit FpsController(const Renderer& renderer, const Font& font,
-                         std::string name)
+  explicit FpsController(std::string name)
       : SceneIsolatedTruffleControllerImpl(name),
         texture_(*this, renderer, font, name + "_texture", 0, 0) {
     addObject(texture_);

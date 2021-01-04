@@ -1,15 +1,23 @@
-//
-// Created by shikugawa on 2020/12/28.
-//
+/**
+ * @file      font.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Low level SDL2 font wrapper
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_FONT_H
 #define TRUFFLE_FONT_H
 
-#include <SDL2/SDL_ttf.h>
+#include <SDL_ttf.h>
 #include <absl/strings/str_format.h>
 
-#include "exception.h"
-#include "non_copyable.h"
+#include <string>
+
+#include "common/exception.h"
+#include "common/logger.h"
+#include "common/non_copyable.h"
+#include "common/singleton.h"
 
 namespace Truffle {
 

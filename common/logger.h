@@ -1,15 +1,21 @@
-//
-// Created by shikugawa on 2020/12/19.
-//
+/**
+ * @file      logger.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     spdlog wrapper
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_LOGGER_H
 #define TRUFFLE_LOGGER_H
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
+
+#include <memory>
 
 namespace Truffle {
 
-// Thread safe logger
+// Thread unsafe logger
 static const std::shared_ptr<spdlog::logger> logger = spdlog::default_logger();
 
 enum class LogLevel {
@@ -37,4 +43,5 @@ void log(LogLevel lv, std::string&& message) {
 }
 
 }  // namespace Truffle
-#endif  // Truffle_LOGGER_H
+
+#endif  // TRUFFLE_LOGGER_H

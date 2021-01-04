@@ -1,6 +1,10 @@
-//
-// Created by shikugawa on 2020/12/19.
-//
+/**
+ * @file      non_copyable.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Common interface to disable unexpected copy and move
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_NON_COPYABLE_H
 #define TRUFFLE_NON_COPYABLE_H
@@ -19,4 +23,5 @@ class NonCopyable {
 };
 
 }  // namespace Truffle
-#endif  // Truffle_NON_COPYABLE_H
+
+#endif  // TRUFFLE_NON_COPYABLE_H

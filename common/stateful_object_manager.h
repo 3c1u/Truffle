@@ -1,13 +1,16 @@
-//
-// Created by shikugawa on 2020/12/28.
-//
+/**
+ * @file      stateful_object_manager.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Manage stateful object with unified interface
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_STATEFUL_OBJECT_MANAGER_H
 #define TRUFFLE_STATEFUL_OBJECT_MANAGER_H
 
-#include <memory>
+#include <mutex>
 #include <set>
-#include <unordered_map>
 
 #include "exception.h"
 #include "logger.h"

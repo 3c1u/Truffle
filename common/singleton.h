@@ -1,11 +1,15 @@
-//
-// Created by 清水嶺 on 2020/12/31.
-//
+/**
+ * @file      singleton.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Base classes to achieve singleton class
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
 
 #ifndef TRUFFLE_SINGLETON_H
 #define TRUFFLE_SINGLETON_H
 
-#include <memory>
+#include <utility>
 
 template <class T>
 class ConstSingleton {
