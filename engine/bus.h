@@ -1,6 +1,11 @@
-//
-// Created by shikugawa on 2020/12/29.
-//
+/**
+ * @file      bus.h
+ * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
+ * @brief     Event communication bus
+ *
+ * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
+ */
+
 
 #ifndef TRUFFLE_BUS_H
 #define TRUFFLE_BUS_H
@@ -8,15 +13,21 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/strings/str_format.h>
 
+#include <memory>
 #include <queue>
 
 #include "common/exception.h"
 #include "common/logger.h"
 #include "common/non_copyable.h"
 #include "common/singleton.h"
-#include "message.h"
 
 namespace Truffle {
+
+struct Message {
+  // 宛先オブジェクト
+  std::string dst_object;
+  std::string detail;
+};
 
 class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
  public:
@@ -66,14 +77,6 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
   std::mutex mux_;
 };
 
-std::shared_ptr<std::queue<Message>> EventMessageBus::getMessageQueue(
-    std::string controller_name) {
-  if (message_queue_.find(controller_name) == message_queue_.end()) {
-    auto queue = std::make_shared<std::queue<Message>>();
-    message_queue_.emplace(controller_name, queue);
-  }
-  return message_queue_.at(controller_name);
-}
 
 }  // namespace Truffle
 #endif  // TRUFFLE_BUS_H

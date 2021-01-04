@@ -6,6 +6,7 @@ add_library(${PROJECT_NAME}
     engine.cpp
     object.cpp
     scene.cpp
+    bus.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})

@@ -20,6 +20,8 @@ class Image : public TruffleVisibleObject {
 
   void render() final;
 
+  [[nodiscard]] const Texture& texture() const& { return texture_; }
+
  private:
   Texture texture_;
 };
