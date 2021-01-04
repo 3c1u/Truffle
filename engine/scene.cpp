@@ -1,7 +1,7 @@
 /**
  * @file      scene.cpp
  * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
- * @brief
+ * @brief     The definition of scene
  *
  * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
  */
@@ -28,9 +28,9 @@ void TruffleScene::setController(TruffleController& controller) {
     throw TruffleException(absl::StrFormat(
         "controller %s had already registered", controller.name()));
   }
-  // log_(LogLevel::INFO, absl::StrFormat("controller %s registered to scene
-  // %s",
-  //                                      controller.name(), name_));
+  Logger::log(LogLevel::INFO,
+              absl::StrFormat("controller %s registered to scene %s",
+                              controller.name(), name_));
   controllers_.emplace(controller.name(), controller);
 }
 

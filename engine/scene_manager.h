@@ -110,7 +110,7 @@ void SceneManager<SceneState>::sendSceneTransitionSignal(SceneState dst_scene) {
   transition_event.type = SDL_USEREVENT;
   transition_event.user.type = EV_SCENE_CHANGED;
   if (SDL_PushEvent(&transition_event) < 0) {
-    // log_(LogLevel::ERROR, "Failed to push event to event diapatcher");
+    Logger::log(LogLevel::ERROR, "Failed to push event to event diapatcher");
     pending_scene_transition_.pop();
   }
 }
@@ -118,8 +118,8 @@ void SceneManager<SceneState>::sendSceneTransitionSignal(SceneState dst_scene) {
 template <class SceneState>
 void SceneManager<SceneState>::transitScene() {
   if (pending_scene_transition_.empty()) {
-    // log_(LogLevel::WARN,
-    //        "Can't invoke scene transition with empty pending queue");
+    Logger::log(LogLevel::WARN,
+                "Can't invoke scene transition with empty pending queue");
     return;
   }
   std::unique_lock<std::mutex> lock(mux_);

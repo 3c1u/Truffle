@@ -16,7 +16,7 @@
 namespace Truffle {
 
 // Thread unsafe logger
-static const std::shared_ptr<spdlog::logger> logger = spdlog::default_logger();
+static const std::shared_ptr<spdlog::logger> logger_ = spdlog::default_logger();
 
 enum class LogLevel {
   DEBUG,
@@ -25,22 +25,26 @@ enum class LogLevel {
   ERROR,
 };
 
-// void // log_(LogLevel lv, std::string&& message) {
-//   switch (lv) {
-//     case LogLevel::DEBUG:
-//       logger->debug(message);
-//       break;
-//     case LogLevel::INFO:
-//       logger->info(message);
-//       break;
-//     case LogLevel::WARN:
-//       logger->warn(message);
-//       break;
-//     case LogLevel::ERROR:
-//       logger->error(message);
-//       break;
-//   }
-// }
+class Logger {
+ public:
+  static void log(LogLevel lv, std::string&& message) {
+    assert(logger_ != nullptr);
+    switch (lv) {
+      case LogLevel::DEBUG:
+        logger_->debug(message);
+        break;
+      case LogLevel::INFO:
+        logger_->info(message);
+        break;
+      case LogLevel::WARN:
+        logger_->warn(message);
+        break;
+      case LogLevel::ERROR:
+        logger_->error(message);
+        break;
+    }
+  }
+};
 
 }  // namespace Truffle
 
