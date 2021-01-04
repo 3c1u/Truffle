@@ -35,6 +35,9 @@ Texture::Texture(std::string path) {
         "Failed to create texture entity from %s", path.c_str()));
   }
 
+  width_ = surface->w;
+  height_ = surface->h;
+
   SDL_FreeSurface(surface);
 }
 
@@ -67,6 +70,9 @@ Texture::Texture(std::string text, TextTextureMode mode, FontInfo info,
     throw TruffleException(absl::StrFormat(
         "Failed to create texture entity from %s", text.c_str()));
   }
+
+  width_ = surface->w;
+  height_ = surface->h;
 
   SDL_FreeSurface(surface);
 }

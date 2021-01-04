@@ -35,18 +35,34 @@ class TruffleController : NonCopyable {
    * オブジェクトを追加する。名前が重複していれば例外を発生する。
    * @param object
    */
-  void appendObject(TruffleObject& object);
+  void appendObject(TruffleVisibleObject& object);
+  void appendObject(TruffleInvisibleObject& object);
 
   /**
-   * このコントローラーによって管理されているすべてのオブジェクトを返す。
+   * このコントローラーによって管理されているすべての可視化対象オブジェクトを返す。
    * @return
    */
-  [[nodiscard]] const absl::flat_hash_map<std::string, TruffleObjectRef>&
-  objects() const& {
-    return objects_;
+  [[nodiscard]] const absl::flat_hash_map<std::string, TruffleVisibleObjectRef>&
+  visibleObjects() const& {
+    return visible_objects_;
   }
-  absl::flat_hash_map<std::string, TruffleObjectRef>& objects() & {
-    return objects_;
+  absl::flat_hash_map<std::string, TruffleVisibleObjectRef>&
+  visibleObjects() & {
+    return visible_objects_;
+  }
+
+  /**
+   * このコントローラーによって管理されているすべての可視化対象外オブジェクトを返す。
+   * @return
+   */
+  [[nodiscard]] const absl::flat_hash_map<std::string,
+                                          TruffleInvisibleObjectRef>&
+  invisibleObjects() const& {
+    return invisible_objects_;
+  }
+  absl::flat_hash_map<std::string, TruffleInvisibleObjectRef>&
+  invisibleObjects() & {
+    return invisible_objects_;
   }
 
   [[nodiscard]] const std::string& name() const& { return name_; }
@@ -60,7 +76,9 @@ class TruffleController : NonCopyable {
   TruffleController(std::string name);
 
  private:
-  absl::flat_hash_map<std::string, TruffleObjectRef> objects_;
+  absl::flat_hash_map<std::string, TruffleVisibleObjectRef> visible_objects_;
+  absl::flat_hash_map<std::string, TruffleInvisibleObjectRef>
+      invisible_objects_;
   std::string name_;
 };
 

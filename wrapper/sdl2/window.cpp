@@ -8,6 +8,10 @@
 
 #include "window.h"
 
+#include <absl/strings/str_format.h>
+
+#include "common/exception.h"
+
 namespace Truffle {
 
 Window::Window(std::string name, int width, int height)

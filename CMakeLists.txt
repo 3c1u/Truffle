@@ -16,6 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR} ${SDL2_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_
 
 add_subdirectory(common)
 add_subdirectory(engine)
+add_subdirectory(object)
 add_subdirectory(wrapper/sdl2)
 
 add_executable(Truffle main.cpp)

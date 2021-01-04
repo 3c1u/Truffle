@@ -10,11 +10,14 @@
 
 namespace Truffle {
 
-TruffleObject::TruffleObject(std::string name) : name_(name) {}
+TruffleVisibleObject::TruffleVisibleObject(std::string name) : name_(name) {}
 
-void TruffleObject::setPoint(int x, int y) {
+void TruffleVisibleObject::setPoint(int x, int y) {
   render_rect.x = x;
   render_rect.y = y;
 }
+
+TruffleInvisibleObject::TruffleInvisibleObject(std::string name)
+    : name_(name) {}
 
 }  // namespace Truffle

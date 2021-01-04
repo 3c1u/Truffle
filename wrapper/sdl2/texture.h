@@ -13,6 +13,8 @@
 
 #include <string>
 
+#include "color.h"
+
 namespace Truffle {
 
 // https://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf_42.html#SEC42
@@ -29,9 +31,12 @@ class Texture {
   Texture(std::string text, TextTextureMode mode, FontInfo info, Color& fg);
   ~Texture();
 
+  int width() const& { return width_; }
+  int height() const& { return height_; }
   [[nodiscard]] SDL_Texture const* entity() const& { return texture_; }
 
  private:
+  int height_, width_;
   SDL_Texture* texture_;
 };
 
