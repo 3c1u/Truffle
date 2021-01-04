@@ -12,9 +12,15 @@
 
 namespace Truffle {
 
+ButtonCallback::ButtonCallback(std::string name) : TruffleVisibleObject(name) {}
+
 void ButtonCallback::_onButtonPressed(SDL_Event& ev) {
   if (isPressed(ev, state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Hovered) {
+    Logger::log(LogLevel::INFO, "State changed from Hovered to Pressed");
+    state_manager.stateTransition(ButtonState::Pressed);
+    setWidth(state_manager.activeStateObject().renderRect().w);
+    setHeight(state_manager.activeStateObject().renderRect().h);
     onButtonPressed();
   }
 }
@@ -22,6 +28,10 @@ void ButtonCallback::_onButtonPressed(SDL_Event& ev) {
 void ButtonCallback::_onButtonReleased(SDL_Event& ev) {
   if (isReleased(ev, state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Pressed) {
+    Logger::log(LogLevel::INFO, "State changed from Pressed to Hovered");
+    state_manager.stateTransition(ButtonState::Hovered);
+    setWidth(state_manager.activeStateObject().renderRect().w);
+    setHeight(state_manager.activeStateObject().renderRect().h);
     onButtonReleased();
   }
 }
@@ -29,6 +39,10 @@ void ButtonCallback::_onButtonReleased(SDL_Event& ev) {
 void ButtonCallback::_onMouseHovered(SDL_Event& ev) {
   if (isMouseHovered(state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Normal) {
+    Logger::log(LogLevel::INFO, "State changed from Normal to Hovered");
+    state_manager.stateTransition(ButtonState::Hovered);
+    setWidth(state_manager.activeStateObject().renderRect().w);
+    setHeight(state_manager.activeStateObject().renderRect().h);
     onMouseHovered();
   }
 }
@@ -36,6 +50,10 @@ void ButtonCallback::_onMouseHovered(SDL_Event& ev) {
 void ButtonCallback::_onMouseUnhovered(SDL_Event& ev) {
   if (isMouseUnhovered(state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Hovered) {
+    Logger::log(LogLevel::INFO, "State changed from Hovered to Normal");
+    state_manager.stateTransition(ButtonState::Normal);
+    setWidth(state_manager.activeStateObject().renderRect().w);
+    setHeight(state_manager.activeStateObject().renderRect().h);
     onMouseUnhovered();
   }
 }
@@ -67,7 +85,7 @@ bool ButtonCallback::isReleased(SDL_Event& ev, const SDL_Rect& render_rect) {
 
 Button::Button(std::string name, int x, int y, std::string path_normal,
                std::string path_hovered, std::string path_pressed)
-    : TruffleVisibleObject(name) {
+    : ButtonCallback(name) {
   state_manager.setInitStatefulObject(ButtonState::Normal, path_normal,
                                       name + "_normal", x, y);
   // Bind object
@@ -105,34 +123,6 @@ void Button::render() {
                        state_manager.activeStateObject().texture().entity()),
                    nullptr /* TODO: introduce clip settings */, &renderRect());
   }
-}
-
-void Button::onButtonPressed() {
-  Logger::log(LogLevel::INFO, "State changed from Hovered to Pressed");
-  state_manager.stateTransition(ButtonState::Pressed);
-  setWidth(state_manager.activeStateObject().renderRect().w);
-  setHeight(state_manager.activeStateObject().renderRect().h);
-}
-
-void Button::onButtonReleased() {
-  Logger::log(LogLevel::INFO, "State changed from Pressed to Hovered");
-  state_manager.stateTransition(ButtonState::Hovered);
-  setWidth(state_manager.activeStateObject().renderRect().w);
-  setHeight(state_manager.activeStateObject().renderRect().h);
-}
-
-void Button::onMouseHovered() {
-  Logger::log(LogLevel::INFO, "State changed from Normal to Hovered");
-  state_manager.stateTransition(ButtonState::Hovered);
-  setWidth(state_manager.activeStateObject().renderRect().w);
-  setHeight(state_manager.activeStateObject().renderRect().h);
-}
-
-void Button::onMouseUnhovered() {
-  Logger::log(LogLevel::INFO, "State changed from Hovered to Normal");
-  state_manager.stateTransition(ButtonState::Normal);
-  setWidth(state_manager.activeStateObject().renderRect().w);
-  setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 }  // namespace Truffle

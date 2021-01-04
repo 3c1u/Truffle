@@ -12,6 +12,7 @@
 #include <SDL2/SDL.h>
 
 #include "common/stateful_object_manager.h"
+#include "engine/actor.h"
 #include "image.h"
 
 namespace Truffle {
@@ -22,8 +23,10 @@ enum class ButtonState {
   Pressed,
 };
 
-class ButtonCallback {
+class ButtonCallback : public TruffleVisibleObject {
  public:
+  ButtonCallback(std::string name);
+
   /**
    * ボタンが押された時のコールバック
    */
@@ -61,7 +64,7 @@ class ButtonCallback {
 /**
  * 基礎的なボタンの機能を提供するクラス
  */
-class Button : public TruffleVisibleObject, public ButtonCallback {
+class Button : public Actor, public ButtonCallback {
  public:
   /**
    * ボタンのコンストラクタ
@@ -80,10 +83,10 @@ class Button : public TruffleVisibleObject, public ButtonCallback {
   void render() override final;
 
   // ButtonEventCallback
-  virtual void onButtonPressed() override;
-  virtual void onButtonReleased() override;
-  virtual void onMouseHovered() override;
-  virtual void onMouseUnhovered() override;
+  virtual void onButtonPressed() override {}
+  virtual void onButtonReleased() override {}
+  virtual void onMouseHovered() override {}
+  virtual void onMouseUnhovered() override {}
 };
 
 }  // namespace Truffle
