@@ -9,7 +9,7 @@
 #ifndef TRUFFLE_BUTTON_H
 #define TRUFFLE_BUTTON_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include "common/stateful_object_manager.h"
 #include "image.h"

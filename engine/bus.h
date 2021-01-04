@@ -6,7 +6,6 @@
  * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
  */
 
-
 #ifndef TRUFFLE_BUS_H
 #define TRUFFLE_BUS_H
 
@@ -55,10 +54,10 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
           absl::StrFormat("%s controller not found", dst_controller));
     }
     if (message_queue_[dst_controller]->size() >= PENDING_MESSAGE_SIZE_LIMIT) {
-      log(LogLevel::WARN,
-          absl::StrFormat(
-              "Pending message size to %s had exceeded buffer size limit %i",
-              dst_controller, PENDING_MESSAGE_SIZE_LIMIT));
+      // log_(LogLevel::WARN,
+      //          absl::StrFormat(
+      //              "Pending message size to %s had exceeded buffer size limit
+      //              %i", dst_controller, PENDING_MESSAGE_SIZE_LIMIT));
       return false;
     }
     // メッセージキューが到着順に構成されることを保証する
@@ -76,7 +75,6 @@ class EventMessageBus : public MutableSingleton<EventMessageBus>, NonCopyable {
       message_queue_;
   std::mutex mux_;
 };
-
 
 }  // namespace Truffle
 #endif  // TRUFFLE_BUS_H

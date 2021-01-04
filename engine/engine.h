@@ -9,9 +9,11 @@
 #ifndef TRUFFLE_ENGINE_H
 #define TRUFFLE_ENGINE_H
 
+#include <SDL2/SDL_Image.h>
+
 #include <memory>
 
-#include "SDL_image.h"
+#include "dispatcher.h"
 #include "engine_config.h"
 #include "scene_manager.h"
 #include "wrapper/sdl2/font.h"
@@ -36,15 +38,28 @@ class Engine {
    */
   TruffleScene& newScene(SceneState state, std::string scene_name);
 
+  /**
+   * シーン遷移を定義する。
+   * @param from
+   * @param to
+   */
+  void setSceneTransition(SceneState from, SceneState to);
+
+  /**
+   * イベントディスパッチャーを起動する
+   */
+  void start();
+
  private:
   std::unique_ptr<Window> window_;
   std::unique_ptr<SceneManager<SceneState>> scene_manager_;
-  RendererStorage renderer_storage_;
-  FontStorage font_storage_;
+  std::unique_ptr<Dispatcher<SceneState>> dispatcher_;
+  std::unique_ptr<RendererStorage> renderer_storage_;
+  std::unique_ptr<FontStorage> font_storage_;
 };
 
-template <class TruffleScene>
-Engine<TruffleScene>::Engine(EngineConfig& config) {
+template <class SceneState>
+Engine<SceneState>::Engine(EngineConfig& config) {
   if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
     throw TruffleException("Failed to init engine");
   }
@@ -53,14 +68,23 @@ Engine<TruffleScene>::Engine(EngineConfig& config) {
       Window::get(config.name, config.window_width, config.window_height);
   window_ = std::unique_ptr<Window>(const_cast<Window*>(&window_tmp));
 
-  renderer_storage_.activateRenderer(*window_);
-  renderer_storage_.activeRenderer()->setDrawColor(config.renderer_color);
+  auto& renderer_storage_tmp = RendererStorage::get();
+  renderer_storage_ = std::unique_ptr<RendererStorage>(&renderer_storage_tmp);
+  renderer_storage_->activateRenderer(*window_);
+  renderer_storage_->activeRenderer()->setDrawColor(config.renderer_color);
 
+  auto& font_storage_tmp = FontStorage::get();
+  font_storage_ = std::unique_ptr<FontStorage>(&font_storage_tmp);
   if (!config.font_paths.empty()) {
     for (const auto& [font_name, path] : config.font_paths) {
-      font_storage_.loadFont(font_name, path);
+      font_storage_->loadFont(font_name, path);
     }
   }
+
+  scene_manager_ = std::make_unique<SceneManager<SceneState>>();
+  auto& dispatcher_tmp =
+      Dispatcher<SceneState>::get(*scene_manager_, config.debug_fps);
+  dispatcher_ = std::unique_ptr<Dispatcher<SceneState>>(&dispatcher_tmp);
 }
 
 template <class SceneState>
@@ -71,7 +95,20 @@ Engine<SceneState>::~Engine() {
 template <class SceneState>
 TruffleScene& Engine<SceneState>::newScene(SceneState state,
                                            std::string scene_name) {
+  assert(scene_manager_ != nullptr);
   return scene_manager_->addScene(state, scene_name);
+}
+
+template <class SceneState>
+void Engine<SceneState>::setSceneTransition(SceneState from, SceneState to) {
+  assert(scene_manager_ != nullptr);
+  scene_manager_->setSceneTransition(from, to);
+}
+
+template <class SceneState>
+void Engine<SceneState>::start() {
+  assert(dispatcher_ != nullptr);
+  dispatcher_->run();
 }
 
 }  // namespace Truffle

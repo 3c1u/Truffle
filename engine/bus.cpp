@@ -19,4 +19,4 @@ std::shared_ptr<std::queue<Message>> EventMessageBus::getMessageQueue(
   return message_queue_.at(controller_name);
 }
 
-}
+}  // namespace Truffle

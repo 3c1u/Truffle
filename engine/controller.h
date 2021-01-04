@@ -9,7 +9,7 @@
 #ifndef TRUFFLE_CONTROLLER_H
 #define TRUFFLE_CONTROLLER_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <absl/container/flat_hash_map.h>
 
 #include <string>

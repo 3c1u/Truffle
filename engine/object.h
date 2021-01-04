@@ -9,16 +9,15 @@
 #ifndef TRUFFLE_OBJECT_H
 #define TRUFFLE_OBJECT_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include <forward_list>
 #include <string>
 
 #include "common/non_copyable.h"
+#include "event.h"
 
 namespace Truffle {
-
-using CustomEventCallback = std::function<void(SDL_Event&)>;
 
 class TruffleVisibleObject : public NonCopyable {
  public:

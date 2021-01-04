@@ -10,46 +10,16 @@
 
 namespace Truffle {
 
-FontStorage::FontStorage() {
-  if (TTF_WasInit() == 0) {
-    // SDL2_ttf should be initialized once
-    log(LogLevel::DEBUG, "SDL_ttf initialized");
-    TTF_Init();
-  }
-}
+// FontStorage::FontStorage() {
 
-std::shared_ptr<Font> FontStorage::openFont_(std::string name,
-                                             size_t size) const {
-  if (loaded_font_.find(name) == loaded_font_.end()) {
-    throw TruffleException(
-        absl::StrFormat("Font %s must be loaded before open", name));
-  }
+//}
 
-  if (active_font_.find(name) == active_font_.end()) {
-    active_font_.emplace(name, std::vector<FontStorage>());
-    active_font_.at(name).emplace_back(
-        FontDriver{size, std::make_shared<Font>(loaded_font_[name], size)});
-    return active_font_.at(name).at(0).font_entity;
-  }
+// std::shared_ptr<Font> FontStorage::openFont_(std::string name,
+//                                             size_t size) {
+//
+//}
 
-  const auto& font_drivers = active_font_.at(name);
-
-  for (const auto& font_driver : font_drivers) {
-    if (font_driver.size == size) {
-      return font_driver.font_entity;
-    }
-  }
-
-  auto font_driver =
-      FontDriver{size, std::make_shared<Font>(loaded_font_[name], size)};
-  active_font_.at(name).emplace_back(font_driver);
-  return font_driver.font_entity;
-}
-
-void FontStorage::loadFont_(std::string name, const std::string& path) const {
-  if (loaded_font_.find(name) != loaded_font_.end()) {
-    return;
-  }
-  loaded_font_.emplace(name, path);
-}
+// void FontStorage::loadFont_(std::string name, std::string const& path) {
+//
+//}
 }  // namespace Truffle

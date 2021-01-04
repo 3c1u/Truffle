@@ -9,7 +9,7 @@
 #ifndef TRUFFLE_FONT_H
 #define TRUFFLE_FONT_H
 
-#include <SDL_ttf.h>
+#include <SDL2/SDL_ttf.h>
 #include <absl/strings/str_format.h>
 
 #include <string>

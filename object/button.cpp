@@ -108,28 +108,28 @@ void Button::render() {
 }
 
 void Button::onButtonPressed() {
-  log(LogLevel::INFO, "State changed from Hovered to Pressed");
+  // log_(LogLevel::INFO, "State changed from Hovered to Pressed");
   state_manager.stateTransition(ButtonState::Pressed);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 void Button::onButtonReleased() {
-  log(LogLevel::INFO, "State changed from Pressed to Hovered");
+  // log_(LogLevel::INFO, "State changed from Pressed to Hovered");
   state_manager.stateTransition(ButtonState::Hovered);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 void Button::onMouseHovered() {
-  log(LogLevel::INFO, "State changed from Normal to Hovered");
+  // log_(LogLevel::INFO, "State changed from Normal to Hovered");
   state_manager.stateTransition(ButtonState::Hovered);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);
 }
 
 void Button::onMouseUnhovered() {
-  log(LogLevel::INFO, "State changed from Hovered to Normal");
+  // log_(LogLevel::INFO, "State changed from Hovered to Normal");
   state_manager.stateTransition(ButtonState::Normal);
   setWidth(state_manager.activeStateObject().renderRect().w);
   setHeight(state_manager.activeStateObject().renderRect().h);

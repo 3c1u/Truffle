@@ -20,6 +20,8 @@ namespace Truffle {
 
 class TruffleScene : NonCopyable {
  public:
+  explicit TruffleScene(std::string scene_name);
+
   /**
    * シーンの初期化を行う。
    */
@@ -43,8 +45,6 @@ class TruffleScene : NonCopyable {
   [[nodiscard]] const std::string& name() const& { return name_; }
 
  private:
-  explicit TruffleScene(std::string scene_name);
-
   std::string name_;
   absl::flat_hash_map<std::string, TruffleControllerRef> controllers_;
 };

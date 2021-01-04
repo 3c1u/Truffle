@@ -9,7 +9,7 @@
 #ifndef TRUFFLE_WINDOW_H
 #define TRUFFLE_WINDOW_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include <string>
 
@@ -20,6 +20,8 @@ namespace Truffle {
 
 class Window : public ConstSingleton<Window>, NonCopyable {
  public:
+  ~Window();
+
   [[nodiscard]] const std::string& name() const& { return name_; }
   [[nodiscard]] SDL_Window const* entity() const& { return window_entity_; }
 
@@ -27,7 +29,6 @@ class Window : public ConstSingleton<Window>, NonCopyable {
   friend class ConstSingleton<Window>;
 
   Window(std::string name, int width, int height);
-  ~Window();
 
   SDL_Window* window_entity_;
   const std::string name_;

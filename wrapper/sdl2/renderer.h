@@ -9,7 +9,7 @@
 #ifndef TRUFFLE_RENDERER_H
 #define TRUFFLE_RENDERER_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include "color.h"
 #include "common/non_copyable.h"
@@ -20,6 +20,8 @@ namespace Truffle {
 
 class Renderer : public MutableSingleton<Renderer>, NonCopyable {
  public:
+  ~Renderer();
+
   void setDrawColor(const Color& color);
   void setDrawColor(Color&& color);
 
@@ -29,7 +31,6 @@ class Renderer : public MutableSingleton<Renderer>, NonCopyable {
   friend class MutableSingleton<Renderer>;
 
   explicit Renderer(const Window& window);
-  ~Renderer();
 
   SDL_Renderer* renderer_entity_;
 };

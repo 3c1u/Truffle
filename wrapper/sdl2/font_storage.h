@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <SDL_ttf.h>
+#include <SDL2/SDL_ttf.h>
 #include <absl/container/flat_hash_map.h>
 
 #include <memory>
@@ -22,7 +22,7 @@
 
 namespace Truffle {
 
-class FontStorage final : public ConstSingleton<FontStorage>,
+class FontStorage final : public MutableSingleton<FontStorage>,
                           public NonCopyable {
  public:
   struct FontDriver {
@@ -50,16 +50,51 @@ class FontStorage final : public ConstSingleton<FontStorage>,
   }
 
  private:
-  friend class ConstSingleton<FontStorage>;
+  friend class MutableSingleton<FontStorage>;
 
-  FontStorage();
+  explicit FontStorage() {
+    if (TTF_WasInit() == 0) {
+      // SDL2_ttf should be initialized once
+      // log_(LogLevel::DEBUG, "SDL_ttf initialized");
+      TTF_Init();
+    }
+  }
 
-  std::shared_ptr<Font> openFont_(std::string name, size_t size) const;
-  void loadFont_(std::string name, std::string const& path) const;
+  std::shared_ptr<Font> openFont_(std::string name, size_t size) {
+    if (loaded_font_.find(name) == loaded_font_.end()) {
+      throw TruffleException(
+          absl::StrFormat("Font %s must be loaded before open", name));
+    }
 
-  mutable absl::flat_hash_map<std::string, std::string> loaded_font_;
-  mutable absl::flat_hash_map<std::string, std::vector<FontDriver>>
-      active_font_;
+    if (active_font_.find(name) == active_font_.end()) {
+      active_font_.emplace(name, std::vector<FontDriver>());
+      active_font_.at(name).emplace_back(
+          FontDriver{size, std::make_shared<Font>(loaded_font_[name], size)});
+      return active_font_.at(name).at(0).font_entity;
+    }
+
+    const auto& font_drivers = active_font_.at(name);
+
+    for (const auto& font_driver : font_drivers) {
+      if (font_driver.size == size) {
+        return font_driver.font_entity;
+      }
+    }
+
+    auto font_driver =
+        FontDriver{size, std::make_shared<Font>(loaded_font_[name], size)};
+    active_font_.at(name).emplace_back(font_driver);
+    return font_driver.font_entity;
+  }
+  void loadFont_(std::string name, std::string const& path) {
+    if (loaded_font_.find(name) != loaded_font_.end()) {
+      return;
+    }
+    loaded_font_.emplace(name, path);
+  }
+
+  absl::flat_hash_map<std::string, std::string> loaded_font_;
+  absl::flat_hash_map<std::string, std::vector<FontDriver>> active_font_;
 };
 
 }  // namespace Truffle
