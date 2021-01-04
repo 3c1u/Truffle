@@ -25,22 +25,22 @@ enum class LogLevel {
   ERROR,
 };
 
-void log(LogLevel lv, std::string&& message) {
-  switch (lv) {
-    case LogLevel::DEBUG:
-      logger->debug(message);
-      break;
-    case LogLevel::INFO:
-      logger->info(message);
-      break;
-    case LogLevel::WARN:
-      logger->warn(message);
-      break;
-    case LogLevel::ERROR:
-      logger->error(message);
-      break;
-  }
-}
+// void // log_(LogLevel lv, std::string&& message) {
+//   switch (lv) {
+//     case LogLevel::DEBUG:
+//       logger->debug(message);
+//       break;
+//     case LogLevel::INFO:
+//       logger->info(message);
+//       break;
+//     case LogLevel::WARN:
+//       logger->warn(message);
+//       break;
+//     case LogLevel::ERROR:
+//       logger->error(message);
+//       break;
+//   }
+// }
 
 }  // namespace Truffle
 

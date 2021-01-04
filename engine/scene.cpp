@@ -28,8 +28,9 @@ void TruffleScene::setController(TruffleController& controller) {
     throw TruffleException(absl::StrFormat(
         "controller %s had already registered", controller.name()));
   }
-  log(LogLevel::INFO, absl::StrFormat("controller %s registered to scene %s",
-                                      controller.name(), name_));
+  // log_(LogLevel::INFO, absl::StrFormat("controller %s registered to scene
+  // %s",
+  //                                      controller.name(), name_));
   controllers_.emplace(controller.name(), controller);
 }
 

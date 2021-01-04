@@ -104,9 +104,9 @@ class StatefulObjectManager : NonCopyable {
           binded_stateful_object_.end()) {
         prev_state_object_ = binded_stateful_object_.at(current_state_);
       } else {
-        log(LogLevel::INFO,
-            "previous StatefulObject can't be loaded because current state has "
-            "no StatefulObject");
+        // log_(LogLevel::INFO,
+        //            "previous StatefulObject can't be loaded because current
+        //            state has " "no StatefulObject");
       }
       current_state_ = to;
     }

@@ -9,7 +9,7 @@
 #ifndef TRUFFLE_COLOR_H
 #define TRUFFLE_COLOR_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 namespace Truffle {
 

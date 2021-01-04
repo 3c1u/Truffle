@@ -8,8 +8,8 @@
 
 #include "texture.h"
 
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+#include <SDL2/SDL_Image.h>
+#include <SDL2/SDL_ttf.h>
 #include <absl/strings/str_format.h>
 
 #include "common/exception.h"

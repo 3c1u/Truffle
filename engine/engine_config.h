@@ -17,11 +17,12 @@
 namespace Truffle {
 
 struct EngineConfig {
-  int window_height;
-  int window_width;
+  int window_height = 680;
+  int window_width = 480;
   std::string name;
-  Color renderer_color;
+  Color renderer_color{0xff, 0xff, 0xff, 0xff};
   std::vector<std::pair<std::string, std::string>> font_paths;
+  bool debug_fps = false;
 };
 
 }  // namespace Truffle

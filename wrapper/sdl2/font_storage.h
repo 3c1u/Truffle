@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <SDL_ttf.h>
+#include <SDL2/SDL_ttf.h>
 #include <absl/container/flat_hash_map.h>
 
 #include <memory>
@@ -22,7 +22,7 @@
 
 namespace Truffle {
 
-class FontStorage final : public ConstSingleton<FontStorage>,
+class FontStorage final : public MutableSingleton<FontStorage>,
                           public NonCopyable {
  public:
   struct FontDriver {
@@ -50,16 +50,16 @@ class FontStorage final : public ConstSingleton<FontStorage>,
   }
 
  private:
-  friend class ConstSingleton<FontStorage>;
+  friend class MutableSingleton<FontStorage>;
 
-  FontStorage();
+  explicit FontStorage();
 
-  std::shared_ptr<Font> openFont_(std::string name, size_t size) const;
-  void loadFont_(std::string name, std::string const& path) const;
+  std::shared_ptr<Font> openFont_(std::string name, size_t size);
 
-  mutable absl::flat_hash_map<std::string, std::string> loaded_font_;
-  mutable absl::flat_hash_map<std::string, std::vector<FontDriver>>
-      active_font_;
+  void loadFont_(std::string name, std::string const& path);
+
+  absl::flat_hash_map<std::string, std::string> loaded_font_;
+  absl::flat_hash_map<std::string, std::vector<FontDriver>> active_font_;
 };
 
 }  // namespace Truffle
