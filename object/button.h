@@ -11,6 +11,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "wrapper/sdl2/event.h"
 #include "common/stateful_object_manager.h"
 #include "engine/actor.h"
 #include "image.h"
@@ -47,18 +48,18 @@ class ButtonCallback : public TruffleVisibleObject {
    */
   virtual void onMouseUnhovered() = 0;
 
-  void _onButtonPressed(SDL_Event& ev);
-  void _onButtonReleased(SDL_Event& ev);
-  void _onMouseHovered(SDL_Event& ev);
-  void _onMouseUnhovered(SDL_Event& ev);
+  void _onButtonPressed(Event& ev);
+  void _onButtonReleased(Event& ev);
+  void _onMouseHovered(Event& ev);
+  void _onMouseUnhovered(Event& ev);
 
   StatefulObjectManager<Image, ButtonState> state_manager;
 
  private:
   bool isMouseHovered(const SDL_Rect& render_rect);
   bool isMouseUnhovered(const SDL_Rect& render_rect);
-  bool isPressed(SDL_Event& ev, const SDL_Rect& render_rect);
-  bool isReleased(SDL_Event& ev, const SDL_Rect& render_rect);
+  bool isPressed(Event& ev, const SDL_Rect& render_rect);
+  bool isReleased(Event& ev, const SDL_Rect& render_rect);
 };
 
 /**

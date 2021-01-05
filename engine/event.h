@@ -6,8 +6,8 @@
  * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
  */
 
-#ifndef TRUFFLE_EVENT_H
-#define TRUFFLE_EVENT_H
+#ifndef TRUFFLE_ENGINE_EVENT_H
+#define TRUFFLE_ENGINE_EVENT_H
 
 #include <SDL2/SDL.h>
 #include <stdint.h>

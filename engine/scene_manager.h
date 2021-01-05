@@ -16,6 +16,7 @@
 #include <queue>
 #include <string>
 
+#include "wrapper/sdl2/event.h"
 #include "common/exception.h"
 #include "common/logger.h"
 #include "common/non_copyable.h"
@@ -106,7 +107,7 @@ void SceneManager<SceneState>::sendSceneTransitionSignal(SceneState dst_scene) {
   // シーン遷移キューとイベントキューの不整合を防ぐためにロックを獲る
   std::unique_lock<std::mutex> lock(mux_);
   pending_scene_transition_.push(dst_scene);
-  SDL_Event transition_event;
+  Event transition_event;
   transition_event.type = SDL_USEREVENT;
   transition_event.user.type = EV_SCENE_CHANGED;
   if (SDL_PushEvent(&transition_event) < 0) {

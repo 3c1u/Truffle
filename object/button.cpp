@@ -14,7 +14,7 @@ namespace Truffle {
 
 ButtonCallback::ButtonCallback(std::string name) : TruffleVisibleObject(name) {}
 
-void ButtonCallback::_onButtonPressed(SDL_Event& ev) {
+void ButtonCallback::_onButtonPressed(Event& ev) {
   if (isPressed(ev, state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Hovered) {
     Logger::log(LogLevel::INFO, "State changed from Hovered to Pressed");
@@ -25,7 +25,7 @@ void ButtonCallback::_onButtonPressed(SDL_Event& ev) {
   }
 }
 
-void ButtonCallback::_onButtonReleased(SDL_Event& ev) {
+void ButtonCallback::_onButtonReleased(Event& ev) {
   if (isReleased(ev, state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Pressed) {
     Logger::log(LogLevel::INFO, "State changed from Pressed to Hovered");
@@ -36,7 +36,7 @@ void ButtonCallback::_onButtonReleased(SDL_Event& ev) {
   }
 }
 
-void ButtonCallback::_onMouseHovered(SDL_Event& ev) {
+void ButtonCallback::_onMouseHovered(Event& ev) {
   if (isMouseHovered(state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Normal) {
     Logger::log(LogLevel::INFO, "State changed from Normal to Hovered");
@@ -47,7 +47,7 @@ void ButtonCallback::_onMouseHovered(SDL_Event& ev) {
   }
 }
 
-void ButtonCallback::_onMouseUnhovered(SDL_Event& ev) {
+void ButtonCallback::_onMouseUnhovered(Event& ev) {
   if (isMouseUnhovered(state_manager.activeStateObject().renderRect()) &&
       state_manager.activeState() == ButtonState::Hovered) {
     Logger::log(LogLevel::INFO, "State changed from Hovered to Normal");
@@ -69,14 +69,14 @@ bool ButtonCallback::isMouseUnhovered(const SDL_Rect& render_rect) {
   return !isMouseHovered(render_rect);
 }
 
-bool ButtonCallback::isPressed(SDL_Event& ev, const SDL_Rect& render_rect) {
+bool ButtonCallback::isPressed(Event& ev, const SDL_Rect& render_rect) {
   if (ev.type == SDL_MOUSEBUTTONDOWN && ev.button.button == SDL_BUTTON_LEFT) {
     return isMouseHovered(render_rect);
   }
   return false;
 }
 
-bool ButtonCallback::isReleased(SDL_Event& ev, const SDL_Rect& render_rect) {
+bool ButtonCallback::isReleased(Event& ev, const SDL_Rect& render_rect) {
   if (ev.type == SDL_MOUSEBUTTONUP && ev.button.button == SDL_BUTTON_LEFT) {
     return isMouseHovered(render_rect);
   }
@@ -111,10 +111,10 @@ Button::Button(std::string controller_name, std::string object_name, int x,
   setHeight(state_manager.activeStateObject().renderRect().h);
 
   // Register event callbacks
-  setEventCallback([this](SDL_Event& e) { this->_onMouseHovered(e); });
-  setEventCallback([this](SDL_Event& e) { this->_onMouseUnhovered(e); });
-  setEventCallback([this](SDL_Event& e) { this->_onButtonReleased(e); });
-  setEventCallback([this](SDL_Event& e) { this->_onButtonPressed(e); });
+  setEventCallback([this](Event& e) { this->_onMouseHovered(e); });
+  setEventCallback([this](Event& e) { this->_onMouseUnhovered(e); });
+  setEventCallback([this](Event& e) { this->_onButtonReleased(e); });
+  setEventCallback([this](Event& e) { this->_onButtonPressed(e); });
 }
 
 void Button::render() {

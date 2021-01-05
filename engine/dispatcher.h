@@ -32,7 +32,7 @@ class Dispatcher : public MutableSingleton<Dispatcher<SceneState>>,
 
   Dispatcher(SceneManager<SceneState>& m, bool enable_fps_calc = false)
       : scene_manager_(m),
-        exit_handler_([](SDL_Event&) {}),
+        exit_handler_([](Event&) {}),
         enable_fps_calc_(enable_fps_calc) {}
 
   Dispatcher(SceneManager<SceneState>& m,
@@ -58,7 +58,7 @@ void Dispatcher<SceneState>::run() {
   scene_manager_.currentScene().initScene();
 
   while (true) {
-    // Handle SDL_Event
+    // Handle Event
     if (!handleEvents()) {
       return;
     }
@@ -88,7 +88,7 @@ void Dispatcher<SceneState>::run() {
 
 template <class SceneState>
 bool Dispatcher<SceneState>::handleEvents() {
-  SDL_Event e;
+  Event e;
   while (SDL_PollEvent(&e) != 0) {
     if (e.type == SDL_QUIT) {
       exit_handler_(e);

@@ -14,6 +14,7 @@
 
 #include <string>
 
+#include "wrapper/sdl2/event.h"
 #include "common/non_copyable.h"
 #include "object.h"
 
@@ -29,7 +30,7 @@ class TruffleController : NonCopyable {
   /**
    * 毎フレーム毎に1回呼ばれるコールバック
    */
-  virtual void update(SDL_Event&){};
+  virtual void update(Event&){};
 
   /**
    * オブジェクトを追加する。名前が重複していれば例外を発生する。

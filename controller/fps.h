@@ -9,6 +9,8 @@
 #ifndef TRUFFLE_FPS_H
 #define TRUFFLE_FPS_H
 
+#include "wrapper/sdl2/event.h"
+
 namespace Truffle {
 
 class FpsController : public SceneIsolatedTruffleControllerImpl {
