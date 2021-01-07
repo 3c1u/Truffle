@@ -16,13 +16,13 @@
 #include <queue>
 #include <string>
 
-#include "wrapper/sdl2/event.h"
 #include "common/exception.h"
 #include "common/logger.h"
 #include "common/non_copyable.h"
 #include "common/singleton.h"
 #include "common/stateful_object_manager.h"
 #include "scene.h"
+#include "wrapper/sdl2/event.h"
 
 namespace Truffle {
 

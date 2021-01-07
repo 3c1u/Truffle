@@ -11,10 +11,10 @@
 
 #include <SDL2/SDL.h>
 
-#include "wrapper/sdl2/event.h"
 #include "common/stateful_object_manager.h"
 #include "engine/actor.h"
 #include "image.h"
+#include "wrapper/sdl2/event.h"
 
 namespace Truffle {
 

@@ -1,11 +1,9 @@
 /**
- * @file      text.cpp
+ * @file      metrics.cpp
  * @author    Rei Shimizu (shikugawa) <shikugawa@gmail.com>
- * @brief     Truffle text object
+ * @brief
  *
  * @copyright Copyright 2021 Rei Shimizu. All rights reserved.
  */
 
-#include "text.h"
-
-namespace Truffle {}  // namespace Truffle
+#include "metrics.h"

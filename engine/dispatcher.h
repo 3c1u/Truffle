@@ -12,10 +12,14 @@
 #include <SDL2/SDL.h>
 
 #include <functional>
+#include <iostream>
 
 #include "common/non_copyable.h"
 #include "common/singleton.h"
+#include "context.h"
+#include "controller/fps.h"
 #include "event.h"
+#include "metrics.h"
 #include "scene_manager.h"
 #include "wrapper/sdl2/renderer_storage.h"
 
@@ -33,23 +37,33 @@ class Dispatcher : public MutableSingleton<Dispatcher<SceneState>>,
   Dispatcher(SceneManager<SceneState>& m, bool enable_fps_calc = false)
       : scene_manager_(m),
         exit_handler_([](Event&) {}),
-        enable_fps_calc_(enable_fps_calc) {}
+        enable_fps_calc_(enable_fps_calc),
+        fps_controller_("fps") {
+    if (enable_fps_calc_) {
+      FpsMetrics::get();
+      Context::get().setController(fps_controller_);
+    }
+  }
 
   Dispatcher(SceneManager<SceneState>& m,
              CustomEventCallback dispatcher_exit_callback,
              bool enable_fps_calc = false)
       : scene_manager_(m),
         exit_handler_(std::move(dispatcher_exit_callback)),
-        enable_fps_calc_(enable_fps_calc) {}
+        enable_fps_calc_(enable_fps_calc),
+        fps_controller_("fps") {
+    if (enable_fps_calc_) {
+      FpsMetrics::get();
+      Context::get().setController(fps_controller_);
+    }
+  }
 
   bool handleEvents();
 
   CustomEventCallback exit_handler_;
   SceneManager<SceneState>& scene_manager_;
+  FpsController fps_controller_;
   bool enable_fps_calc_ = false;
-  uint64_t frame_;
-
-  //  FpsController fps_controller_{renderer_, font_, "fps_controller"};
 };
 
 template <class SceneState>
@@ -77,11 +91,17 @@ void Dispatcher<SceneState>::run() {
       }
     }
 
+    // TODO: render global controllers
+
     SDL_RenderPresent(const_cast<SDL_Renderer*>(
         RendererStorage::get().activeRenderer()->entity()));
-    // Calculate Fps
+
     if (enable_fps_calc_) {
-      ++frame_;
+      FpsMetrics::get().incFrame();
+
+      if (FpsMetrics::get().shouldCalcFps()) {
+        fps_controller_.setFps(FpsMetrics::get().fps());
+      }
     }
   }
 }

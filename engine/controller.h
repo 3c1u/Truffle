@@ -14,9 +14,9 @@
 
 #include <string>
 
-#include "wrapper/sdl2/event.h"
 #include "common/non_copyable.h"
 #include "object.h"
+#include "wrapper/sdl2/event.h"
 
 namespace Truffle {
 

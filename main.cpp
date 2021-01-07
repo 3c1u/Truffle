@@ -172,7 +172,10 @@ enum class SceneState {
 
 int main() {
   Truffle::EngineConfig config;
+  config.debug_fps = true;
   config.name = "truffle_sample";
+  config.font_paths.emplace_back(
+      std::make_pair("lazy", "../testdata/font/lazy.ttf"));
 
   Truffle::Engine<SceneState> engine(config);
   engine.newScene(SceneState::Init, "root");

@@ -17,6 +17,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 add_subdirectory(common)
 add_subdirectory(engine)
 add_subdirectory(object)
+add_subdirectory(controller)
 add_subdirectory(wrapper/sdl2)
 
 add_executable(${PROJECT_NAME} main.cpp)

@@ -9,25 +9,29 @@
 #ifndef TRUFFLE_FPS_H
 #define TRUFFLE_FPS_H
 
-#include "wrapper/sdl2/event.h"
+#include "engine/controller.h"
+#include "object/text.h"
 
 namespace Truffle {
 
-class FpsController : public SceneIsolatedTruffleControllerImpl {
+class FpsController : public TruffleController {
  public:
   explicit FpsController(std::string name)
-      : SceneIsolatedTruffleControllerImpl(name),
-        texture_(*this, renderer, font, name + "_texture", 0, 0) {
-    addObject(texture_);
+      : TruffleController(name),
+        text_(name + "_text", std::to_string(fps_) + " fps", 0, 0,
+              Color{0xff, 0xff, 0xff, 0xff}, "lazy", 20) {
+    appendObject(text_);
   }
 
   void update(SDL_Event& ev) final {
-    Color cg{0x00, 0x00, 0x00, 0xff};
-    texture_.loadBlendTexture("string", cg);
+    text_.setText(std::to_string(fps_) + " fps");
   }
 
+  void setFps(double fps) { fps_ = fps; }
+
  private:
-  TextTexture texture_;
+  SolidText text_;
+  double fps_ = 0;
 };
 
 }  // namespace Truffle

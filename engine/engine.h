@@ -51,11 +51,8 @@ class Engine {
   void start();
 
  private:
-  std::unique_ptr<Window> window_;
   std::unique_ptr<SceneManager<SceneState>> scene_manager_;
   std::unique_ptr<Dispatcher<SceneState>> dispatcher_;
-  std::unique_ptr<RendererStorage> renderer_storage_;
-  std::unique_ptr<FontStorage> font_storage_;
 };
 
 template <class SceneState>
@@ -66,18 +63,15 @@ Engine<SceneState>::Engine(EngineConfig& config) {
 
   const auto& window_tmp =
       Window::get(config.name, config.window_width, config.window_height);
-  window_ = std::unique_ptr<Window>(const_cast<Window*>(&window_tmp));
 
   auto& renderer_storage_tmp = RendererStorage::get();
-  renderer_storage_ = std::unique_ptr<RendererStorage>(&renderer_storage_tmp);
-  renderer_storage_->activateRenderer(*window_);
-  renderer_storage_->activeRenderer()->setDrawColor(config.renderer_color);
+  renderer_storage_tmp.activateRenderer(window_tmp);
+  renderer_storage_tmp.activeRenderer()->setDrawColor(config.renderer_color);
 
   auto& font_storage_tmp = FontStorage::get();
-  font_storage_ = std::unique_ptr<FontStorage>(&font_storage_tmp);
   if (!config.font_paths.empty()) {
     for (const auto& [font_name, path] : config.font_paths) {
-      font_storage_->loadFont(font_name, path);
+      font_storage_tmp.loadFont(font_name, path);
     }
   }
 
